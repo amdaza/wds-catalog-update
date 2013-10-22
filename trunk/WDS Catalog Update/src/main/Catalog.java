@@ -11,36 +11,34 @@ import java.net.URLConnection;
 
 public class Catalog {
 	
+	String catalogPath;
+	
+	public Catalog(){
+		catalogPath = "";
+	}
+	
+	public Catalog(String catalogPath){
+		this.catalogPath = catalogPath;
+	}
+	
 	/**
 	 * Downloads WDS Catalog and saves it in /downloads/catalog.txt
 	 * 
 	 * @param args
 	 */
-	public void getCatalog() {
+	public void saveCatalog(String filePath) {
 		try {
 			// Url with WDS Catalog
 			URL url = new URL(
 					"http://ad.usno.navy.mil/wds/Webtextfiles/wdsweb_summ.txt");
-			
-			//Destination directory for downloads
-			String folder = "downloads/";
-			 
-			//Create the destination directory if it does not exist
-			File dir = new File(folder);
-			 
-			if (!dir.exists())
-			  if (!dir.mkdir())
-			    return; // could't create destination directory
-			
-			String name = "catalog.txt";
 
-			File file = new File(folder + name);
+			File file = new File(filePath);
 			
 			URLConnection conn = url.openConnection();
 			conn.connect();
 			System.out.println("\nStarting download: \n");
 			System.out.println(">> URL: " + url);
-			System.out.println(">> Name: " + name);
+			System.out.println(">> Path: " + filePath);
 			System.out.println(">> Size: " + conn.getContentLength() + " bytes");
 			
 			InputStream in = conn.getInputStream();
