@@ -1,7 +1,9 @@
 package main;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,7 +37,7 @@ public class Catalog extends Observable{
 		this.catalogPath = catalogPath;
 		message= "Actual file path: " + catalogPath + "\n";
 		setChanged();
-		notifyObservers();
+		notifyObservers("clear");
 	}
 	
 /*	public URL getUrl() {
@@ -77,7 +79,7 @@ public class Catalog extends Observable{
 			
 			URLConnection conn = url.openConnection();
 			conn.connect();			
-			System.out.println("\nStarting download: \n");
+			System.out.println("Starting download: \n");
 			System.out.println(">> URL: " + url);
 			System.out.println(">> Path: " + filePath);
 			System.out.println(">> Size: " + conn.getContentLength() + " bytes");
@@ -86,7 +88,7 @@ public class Catalog extends Observable{
 					">> Path: " + filePath + "\n" +
 					">> Size: " + conn.getContentLength() + " bytes\n";
 			setChanged();
-			notifyObservers();
+			notifyObservers("clear");
 			
 			InputStream in = conn.getInputStream();
 			OutputStream out = new FileOutputStream(file);
@@ -108,7 +110,7 @@ public class Catalog extends Observable{
 			message = "\nDownload finished. \n" +
 					"Actual file path: " + filePath + "\n";
 			setChanged();
-			notifyObservers();
+			notifyObservers("append");
 			catalogPath = filePath;
 				 
 				} catch (MalformedURLException e) {
@@ -119,5 +121,59 @@ public class Catalog extends Observable{
 				}
 		
 	}
+	
+	public void searchInFile(String... strings){
+		  File archive = null;
+	      FileReader fr = null;
+	      BufferedReader br = null;
+	 
+	      try {
+	         // Open file and create BufferedReader
+	         // for reading (using readLine()).
+	         archive = new File (catalogPath);
+	         fr = new FileReader (archive);
+	         br = new BufferedReader(fr);
+	 
+	         // Read file
+	         String line;
+	         while((line=br.readLine())!=null){
+		            //System.out.println(line);
+	        	 if (strings.length ==1){
+	        		 searchAnyText(line, strings[0]);
+	        	 }else{
+	        		 seachCoordinates(line, strings[0], strings[1], strings[2]);
+	        	 }
+	         }
+	      }
+	      catch(Exception e){
+	         e.printStackTrace();
+	      }finally{
+	    	  // Here we close file, to make sure that
+	    	  // it closes even if everything's ok
+	    	  // or there is an exception
+	         try{                    
+	            if( null != fr ){   
+	               fr.close();     
+	            }                  
+	         }catch (Exception e2){ 
+	            e2.printStackTrace();
+	         }
+	      }
+	}
+	
+	private void seachCoordinates(String line, String ra, String dec, String radius) {
+		
+		
+	}
+
+	public void searchAnyText(String line, String text){
+		int index = line.indexOf(text);
+		if (index > 0){
+			System.out.println(line);
+			setChanged();
+			notifyObservers(line);
+		}//else System.out.println(text);
+	}
+	
 
 }
