@@ -17,6 +17,10 @@ import java.util.Scanner;
 import static javax.swing.GroupLayout.Alignment.*;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 
 
@@ -41,9 +45,9 @@ public class Interface extends JFrame {
 	private JTextField decTextField;
 	private JTextField radiusTextField;
 	private JTextField searchTextField;	
-	private JButton findButton1;
-	private JButton findButton2;
-	private JTextArea resultTextArea;
+	private JButton searchButton1;
+	private JButton searchButton2;
+	private JTextPane resultTextPane;
 	private JScrollPane scrollPanel; 
 	private static StatusTextArea statusTextArea;
 	//////////////////////////////////////
@@ -73,7 +77,7 @@ public class Interface extends JFrame {
 		this.setTitle("WDS Catalog");
 		this.setEnabled(true);
 		this.setVisible(true);
-		this.setSize(500, 500);
+		this.setSize(900, 500);
 		this.setJMenuBar(getMenBar());
 		this.setContentPane(globalPanel());
 		this.validate();
@@ -91,14 +95,19 @@ public class Interface extends JFrame {
 		decTextField = new JTextField();
 		radiusTextField = new JTextField();
 		searchTextField = new JTextField();
-		findButton1 = new JButton("Search");
-		findButton2 = new JButton("Search");
-
-		resultTextArea = new JTextArea();
-		resultTextArea.setWrapStyleWord(true);
-		resultTextArea.setLineWrap(true);
 		
-		scrollPanel = new JScrollPane(resultTextArea); 
+		ButtonListener o = new ButtonListener();
+		searchButton1 = new JButton("Search");
+		searchButton1.addActionListener(o);
+		
+		searchButton2 = new JButton("Search");
+		searchButton2.addActionListener(o);
+
+		resultTextPane = new JTextPane();
+	//	resultTextArea.setWrapStyleWord(true);
+	//	resultTextArea.setLineWrap(true);
+		
+		scrollPanel = new JScrollPane(resultTextPane); 
 		scrollPanel.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		
 		statusTextArea = new StatusTextArea(statusMessage);
@@ -145,10 +154,10 @@ public class Interface extends JFrame {
 					.addComponent(scrollPanel)
 					.addComponent(statusTextArea))
 				.addGroup(fieldsLayout.createParallelGroup(CENTER)
-					.addComponent(findButton1)
-					.addComponent(findButton2))
+					.addComponent(searchButton1)
+					.addComponent(searchButton2))
 		);
-		fieldsLayout.linkSize(SwingConstants.HORIZONTAL, findButton1);
+		fieldsLayout.linkSize(SwingConstants.HORIZONTAL, searchButton1);
 
 		fieldsLayout.setVerticalGroup(fieldsLayout.createSequentialGroup()
 				.addGroup(fieldsLayout.createParallelGroup(CENTER)
@@ -162,11 +171,11 @@ public class Interface extends JFrame {
 			                .addComponent(raTextField)
 			                .addComponent(decTextField)
 			                .addComponent(radiusTextField))) 
-			            .addComponent(findButton1))
+			            .addComponent(searchButton1))
 				.addGroup(fieldsLayout.createParallelGroup(LEADING)
 					.addComponent(labelAnyText)
 					.addComponent(searchTextField)
-					.addComponent(findButton2))
+					.addComponent(searchButton2))
 				.addGroup(fieldsLayout.createParallelGroup(LEADING)
 					.addComponent(scrollPanel)
 				)	.addComponent(statusTextArea)
@@ -208,9 +217,9 @@ public class Interface extends JFrame {
 				JFileChooser selecFile= new JFileChooser();
 				int status=selecFile.showOpenDialog(Interface.this);
 				if(status == JFileChooser.APPROVE_OPTION){
-					String file=selecFile.getSelectedFile().getName();
+					String file=selecFile.getSelectedFile().getAbsolutePath();	
 					Info.setCatalogPath(file);
-					JOptionPane.showMessageDialog(null,"The file has been opened successfully \n" + file);
+				//	JOptionPane.showMessageDialog(null,"The file has been opened successfully \n" + file);
 						
 				}
 				/*else if (status == JFileChooser) {
@@ -343,6 +352,8 @@ public class Interface extends JFrame {
 	}
 
 	
+	/**********************************AUXILIAR CLASSES************************************************/
+	
 	public class StatusTextArea extends JTextArea implements Observer{
 		
 		public StatusTextArea(String text){
@@ -353,12 +364,66 @@ public class Interface extends JFrame {
 		public void update(Observable arg0, Object arg1) {
 			System.out.println("\nupdate: \n");
 			//this.setText(Info.getMessage());
-			this.append(Info.getMessage());
+			if (arg1.equals("append")){
+				this.append(Info.getMessage());
+			}else if (arg1.equals("clear")){
+				this.setText(Info.getMessage());
+			}else{// arg1 is the line to show
+				String searchText = searchTextField.getText();
+				int index1 = ((String) arg1).indexOf(searchText);
+				int index2 = index1 + searchText.length();
+				int end = ((String) arg1).length();
+				
+				StyledDocument doc = resultTextPane.getStyledDocument();
+
+		        Style style = resultTextPane.addStyle("I'm a Style", null);
+		        StyleConstants.setForeground(style, Color.black);
+
+		        try { doc.insertString(doc.getLength(), ((String) arg1).substring(0,index1),style); }
+		        catch (BadLocationException e){}
+
+		        StyleConstants.setForeground(style, Color.red);
+
+		        try { doc.insertString(doc.getLength(), ((String) arg1).substring(index1,index2),style); }
+		        catch (BadLocationException e){}
+		        
+		        StyleConstants.setForeground(style, Color.black);
+
+		        try { doc.insertString(doc.getLength(), ((String) arg1).substring(index2,end),style); }
+		        catch (BadLocationException e){}
+		        
+		        try { doc.insertString(doc.getLength(), "\n", style); }
+		        catch (BadLocationException e){}
+				
+				/*resultTextArea.setForeground(Color.BLACK);
+				resultTextArea.append(((String) arg1).substring(0,index1));
+				resultTextArea.setForeground(Color.RED);
+				resultTextArea.append(((String) arg1).substring(index1,index2));
+				resultTextArea.setForeground(Color.BLACK);
+				resultTextArea.append(((String) arg1).substring(index2,end));
+				resultTextArea.append("\n");*/
+			}
+			
 			this.revalidate();
 			this.update(this.getGraphics());
 		}
 
 	}
+	
+	
+	public class ButtonListener implements ActionListener{
+		public void actionPerformed(ActionEvent e) {
+			Object o = e.getSource();
+			if (o==searchButton1){//Search from coordinates and radius
+				//System.out.println("Pulsado 1");
+			}
+			else if (o==searchButton2){//Search any text
+				resultTextPane.setText("");
+				Info.searchInFile(searchTextField.getText());
+			}
+		}
+	}
+	
 	
 	
 }
