@@ -7,12 +7,8 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Scanner;
 
 import static javax.swing.GroupLayout.Alignment.*;
 
@@ -54,6 +50,9 @@ public class Interface extends JFrame {
 	private String statusMessage;
 	private ImageIcon iconExit ;
 	
+	private boolean searchText;
+	private boolean searchCoordinates;
+	
 	
 	private static Catalog Info;
 
@@ -68,6 +67,8 @@ public class Interface extends JFrame {
 
 	public Interface(){
 		statusMessage = "No selected file. Please, select one from your computer or download it.";
+		searchText = false;
+		searchCoordinates = false;
 		initialize();
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		
@@ -77,7 +78,7 @@ public class Interface extends JFrame {
 		this.setTitle("WDS Catalog");
 		this.setEnabled(true);
 		this.setVisible(true);
-		this.setSize(900, 500);
+		this.setSize(1000, 500);
 		this.setJMenuBar(getMenBar());
 		this.setContentPane(globalPanel());
 		this.validate();
@@ -104,8 +105,6 @@ public class Interface extends JFrame {
 		searchButton2.addActionListener(o);
 
 		resultTextPane = new JTextPane();
-	//	resultTextArea.setWrapStyleWord(true);
-	//	resultTextArea.setLineWrap(true);
 		
 		scrollPanel = new JScrollPane(resultTextPane); 
 		scrollPanel.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -116,7 +115,7 @@ public class Interface extends JFrame {
 		statusTextArea.setVisible(true);
 		statusTextArea.setEditable(false);
 		
-		searchTextField.setMaximumSize(new Dimension(1000,20));
+		searchTextField.setMaximumSize(new Dimension(1500,20));
 		
 		mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout());
@@ -356,19 +355,20 @@ public class Interface extends JFrame {
 	
 	public class StatusTextArea extends JTextArea implements Observer{
 		
+
 		public StatusTextArea(String text){
 			this.setText(text);
 		}
 
 		@Override
 		public void update(Observable arg0, Object arg1) {
-			System.out.println("\nupdate: \n");
 			//this.setText(Info.getMessage());
 			if (arg1.equals("append")){
 				this.append(Info.getMessage());
 			}else if (arg1.equals("clear")){
 				this.setText(Info.getMessage());
-			}else{// arg1 is the line to show
+			}else if (searchText){// arg1 is the line to show
+				this.setText("Search any text from Catalog");
 				String searchText = searchTextField.getText();
 				int index1 = ((String) arg1).indexOf(searchText);
 				int index2 = index1 + searchText.length();
@@ -394,14 +394,39 @@ public class Interface extends JFrame {
 		        
 		        try { doc.insertString(doc.getLength(), "\n", style); }
 		        catch (BadLocationException e){}
+		        
+		        resultTextPane.revalidate();
+		        resultTextPane.update(resultTextPane.getGraphics());
+		        
+			}else if(searchCoordinates){// arg1 is the line to show
+				this.setText("Search from Right Ascention, Declination and Radius");
+				int index1 = 80;
+				int index2 = 97;
+				int end = ((String) arg1).length();
 				
-				/*resultTextArea.setForeground(Color.BLACK);
-				resultTextArea.append(((String) arg1).substring(0,index1));
-				resultTextArea.setForeground(Color.RED);
-				resultTextArea.append(((String) arg1).substring(index1,index2));
-				resultTextArea.setForeground(Color.BLACK);
-				resultTextArea.append(((String) arg1).substring(index2,end));
-				resultTextArea.append("\n");*/
+				StyledDocument doc = resultTextPane.getStyledDocument();
+
+		        Style style = resultTextPane.addStyle("I'm a Style", null);
+		        StyleConstants.setForeground(style, Color.black);
+
+		        try { doc.insertString(doc.getLength(), ((String) arg1).substring(0,index1),style); }
+		        catch (BadLocationException e){}
+
+		        StyleConstants.setForeground(style, Color.blue);
+
+		        try { doc.insertString(doc.getLength(), ((String) arg1).substring(index1,index2),style); }
+		        catch (BadLocationException e){}
+		        
+		        StyleConstants.setForeground(style, Color.black);
+
+		        try { doc.insertString(doc.getLength(), ((String) arg1).substring(index2,end),style); }
+		        catch (BadLocationException e){}
+		        
+		        try { doc.insertString(doc.getLength(), "\n", style); }
+		        catch (BadLocationException e){}
+		        
+		        resultTextPane.revalidate();
+		        resultTextPane.update(resultTextPane.getGraphics());
 			}
 			
 			this.revalidate();
@@ -416,8 +441,17 @@ public class Interface extends JFrame {
 			Object o = e.getSource();
 			if (o==searchButton1){//Search from coordinates and radius
 				//System.out.println("Pulsado 1");
+				searchCoordinates = true;
+				searchText = false;
+				resultTextPane.setText("");
+				String ra = raTextField.getText();
+				String dec = decTextField.getText();
+				String radius = radiusTextField.getText();
+				Info.searchInFile(ra, dec, radius);
 			}
 			else if (o==searchButton2){//Search any text
+				searchCoordinates = false;
+				searchText = true;
 				resultTextPane.setText("");
 				Info.searchInFile(searchTextField.getText());
 			}
