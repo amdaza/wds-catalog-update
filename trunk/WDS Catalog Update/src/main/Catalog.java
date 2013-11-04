@@ -16,8 +16,6 @@ import java.util.Observable;
 public class Catalog extends Observable{
 	
 	private String catalogPath;
-	//private URL url;
-	//private URLConnection conn;
 	private String message;
 
 
@@ -162,14 +160,32 @@ public class Catalog extends Observable{
 	}
 	
 	private void seachCoordinates(String line, String ra, String dec, String radius) {
-		
-		
+		Star aux = new Star(ra, dec);
+		Double rad = Double.parseDouble(radius);
+		LineCatalog lineCat = new LineCatalog(line);
+		try{
+			Star prim = new Star(lineCat.getPrimRa(), lineCat.getPrimDec());
+			if (aux.distance(prim)<= rad){
+				setChanged();
+				notifyObservers(line);
+			}else{
+				Star sec = new Star(lineCat.getSecRa(), lineCat.getSecDec());
+				if (aux.distance(sec)<= rad){
+					setChanged();
+					notifyObservers(line);
+				}
+				
+			}
+		}catch (NumberFormatException ex){
+			//Do nothing with this star
+		}
+
+				
 	}
 
 	public void searchAnyText(String line, String text){
 		int index = line.indexOf(text);
 		if (index > 0){
-			System.out.println(line);
 			setChanged();
 			notifyObservers(line);
 		}//else System.out.println(text);
