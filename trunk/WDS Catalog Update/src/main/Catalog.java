@@ -12,21 +12,31 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Observable;
 
+/**
+ * This class download the file. Txt WDS
+ * Performs search on any text or by coordinates (right ascension, declination, radius)
+ * 
+ * @author Alicia Mireya Daza castillo
+ * @author Jorge González López
+ * @author Rosa Rodríguez Navarro
+ * @since 1.0
+ */
 
 public class Catalog extends Observable{
 	
+	/** attributes */
 	private String catalogPath;
 	private String message;
 
-
+	/** construction */
 	public Catalog(){
 		catalogPath = "";
 	}
-	
+	/** construction */
 	public Catalog(String catalogPath){
 		this.catalogPath = catalogPath;
 	}
-	
+	/** Getters and setters */
 	public String getCatalogPath() {
 		return catalogPath;
 	}
@@ -37,22 +47,6 @@ public class Catalog extends Observable{
 		setChanged();
 		notifyObservers("clear");
 	}
-	
-/*	public URL getUrl() {
-		return url;
-	}
-
-	public void setUrl(URL url) {
-		this.url = url;
-	}
-
-	public URLConnection getConn() {
-		return conn;
-	}
-
-	public void setConn(URLConnection conn) {
-		this.conn = conn;
-	}*/
 	
 	public String getMessage() {
 		return message;
@@ -65,7 +59,7 @@ public class Catalog extends Observable{
 	/**
 	 * Downloads WDS Catalog and saves it in /downloads/catalog.txt
 	 * 
-	 * @param args
+	 * @param filePath
 	 */
 	public void saveCatalog(String filePath) {
 		try {
@@ -119,7 +113,11 @@ public class Catalog extends Observable{
 				}
 		
 	}
-	
+	/**
+     *  search method in the file
+     *  @param array of string
+     * 
+     */
 	public void searchInFile(String... strings){
 		  File archive = null;
 	      FileReader fr = null;
@@ -135,7 +133,6 @@ public class Catalog extends Observable{
 	         // Read file
 	         String line;
 	         while((line=br.readLine())!=null){
-		            //System.out.println(line);
 	        	 if (strings.length ==1){
 	        		 searchAnyText(line, strings[0]);
 	        	 }else{
@@ -159,6 +156,12 @@ public class Catalog extends Observable{
 	      }
 	}
 	
+	
+	/**
+     *  coordinate search method
+     *  @param line, right ascension, declination, radius
+     * 
+     */
 	private void seachCoordinates(String line, String ra, String dec, String radius) {
 		Star aux = new Star(ra, dec);
 		Double rad = Double.parseDouble(radius);
@@ -169,12 +172,13 @@ public class Catalog extends Observable{
 				setChanged();
 				notifyObservers(line);
 			}else{
+				/*
 				Star sec = new Star(lineCat.getSecRa(), lineCat.getSecDec());
 				if (aux.distance(sec)<= rad){
 					setChanged();
 					notifyObservers(line);
 				}
-				
+				*/
 			}
 		}catch (NumberFormatException ex){
 			//Do nothing with this star
@@ -182,7 +186,11 @@ public class Catalog extends Observable{
 
 				
 	}
-
+	/**
+     *  search method for any string, notice the line where there is agreement
+     *  @param line, text
+     * 
+     */
 	public void searchAnyText(String line, String text){
 		int index = line.indexOf(text);
 		if (index > 0){
