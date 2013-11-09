@@ -3,10 +3,12 @@ package main;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -37,6 +39,8 @@ public class Interface extends JFrame {
 	private JLabel labelRA;
 	private JLabel labelDec;
 	private JLabel labelRadius;
+	private JLabel labelWDShead1;
+	private JLabel labelWDShead2;
 	private JTextField raTextField;
 	private JTextField decTextField;
 	private JTextField radiusTextField;
@@ -52,6 +56,9 @@ public class Interface extends JFrame {
 	
 	private boolean searchText;
 	private boolean searchCoordinates;
+	
+	// path to the application
+	String path;
 	
 	
 	private static Catalog Info;
@@ -78,25 +85,28 @@ public class Interface extends JFrame {
 		this.setTitle("WDS Catalog");
 		this.setEnabled(true);
 		this.setVisible(true);
-		this.setSize(1000, 500);
+		this.setSize(1140, 640);
 		this.setJMenuBar(getMenBar());
 		this.setContentPane(globalPanel());
 		this.validate();
-		
+		path =  System.getProperty("user.dir"); //new File(".").getCanonicalPath();
+
 		
 	}
 	
 	private JPanel globalPanel() {
 		labelCoord = new JLabel("Coordinates:");
 		labelAnyText = new JLabel("Any text:");
-		labelRA = new JLabel("Right Ascension");
-		labelDec = new JLabel("Declination");
-		labelRadius = new JLabel("Radius");
+		labelRA = new JLabel("Right Ascension (e.g. 192141.60)");
+		labelDec = new JLabel("Declination (e.g. -222820.4)");
+		labelRadius = new JLabel("Radius (seconds)");
 		raTextField = new JTextField();
 		decTextField = new JTextField();
 		radiusTextField = new JTextField();
 		searchTextField = new JTextField();
-		
+
+		labelWDShead1 = new JLabel("    WDS   Discovr Comp  EPOCH      #  THETA       RHO     Magnitudes Spectral  Prop Mot  2nd PM   DM Desig Note     Precise");
+		labelWDShead2 = new JLabel("Identifier             Frst Last      Fst Lst First  Last  Pri   Sec  Type      RA\" DEC\" RA\" DEC\"                 Coordinate");
 		ButtonListener o = new ButtonListener();
 		searchButton1 = new JButton("Search");
 		searchButton1.addActionListener(o);
@@ -108,6 +118,11 @@ public class Interface extends JFrame {
 		
 		scrollPanel = new JScrollPane(resultTextPane); 
 		scrollPanel.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		
+		Font font = new Font( "Monospaced", Font.PLAIN, 12 );  
+		resultTextPane.setFont( font );
+		labelWDShead1.setFont(font);
+		labelWDShead2.setFont(font);
 		
 		statusTextArea = new StatusTextArea(statusMessage);
 
@@ -150,6 +165,8 @@ public class Interface extends JFrame {
 								.addComponent(labelRadius)
 								.addComponent(radiusTextField)))
 					.addComponent(searchTextField)
+					.addComponent(labelWDShead1)
+				    .addComponent(labelWDShead2)
 					.addComponent(scrollPanel)
 					.addComponent(statusTextArea))
 				.addGroup(fieldsLayout.createParallelGroup(CENTER)
@@ -175,7 +192,11 @@ public class Interface extends JFrame {
 					.addComponent(labelAnyText)
 					.addComponent(searchTextField)
 					.addComponent(searchButton2))
-				.addGroup(fieldsLayout.createParallelGroup(LEADING)
+                .addGroup(fieldsLayout.createParallelGroup(LEADING)					
+    				    .addComponent(labelWDShead1))
+                .addGroup(fieldsLayout.createParallelGroup(LEADING)					
+    					.addComponent(labelWDShead2))
+                .addGroup(fieldsLayout.createParallelGroup(LEADING)						
 					.addComponent(scrollPanel)
 				)	.addComponent(statusTextArea)
 		);	
@@ -213,7 +234,8 @@ public class Interface extends JFrame {
 		openFileItem.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
 				
-				JFileChooser selecFile= new JFileChooser();
+				JFileChooser selecFile= new JFileChooser(path);
+				
 				int status=selecFile.showOpenDialog(Interface.this);
 				if(status == JFileChooser.APPROVE_OPTION){
 					String file=selecFile.getSelectedFile().getAbsolutePath();	
@@ -331,12 +353,13 @@ public class Interface extends JFrame {
 		downCatalFileItem.setEnabled(true);
 		downCatalFileItem.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser selecFile=new JFileChooser();
+				JFileChooser selecFile=new JFileChooser(path);
 				@SuppressWarnings("unused")
 				int i=selecFile.showSaveDialog(Interface.this);
 				try{
 					String fileName=selecFile.getSelectedFile().getAbsolutePath();					
 					Info.saveCatalog(fileName);
+					Info.setCatalogPath(fileName);
 				/*	JOptionPane.showMessageDialog(null, "Download finished: \n"+ ">> URL: " + Info.getUrl() +  "\n"+
 							">> Path: " + fileName+ "\n"+ 
 							">> Size: " + Info.getConn().getContentLength() + " bytes");*/
