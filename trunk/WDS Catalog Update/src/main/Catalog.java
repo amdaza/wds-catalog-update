@@ -12,6 +12,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Observable;
 
+import javax.swing.JOptionPane;
+
 /**
  * This class download the file. Txt WDS
  * Performs search on any text or by coordinates (right ascension, declination, radius)
@@ -28,19 +30,25 @@ public class Catalog extends Observable{
 	private String catalogPath;
 	private String message;
 
+	
 	/** construction */
 	public Catalog(){
 		catalogPath = "";
 	}
+	
+	
 	/** construction */
 	public Catalog(String catalogPath){
 		this.catalogPath = catalogPath;
 	}
+	
+	
 	/** Getters and setters */
 	public String getCatalogPath() {
 		return catalogPath;
 	}
 
+	
 	public void setCatalogPath(String catalogPath) {
 		this.catalogPath = catalogPath;
 		message= "Actual file path: " + catalogPath + "\n";
@@ -48,9 +56,11 @@ public class Catalog extends Observable{
 		notifyObservers("clear");
 	}
 	
+	
 	public String getMessage() {
 		return message;
 	}
+	
 
 	public void setMessage(String message) {
 		this.message = message;
@@ -71,10 +81,10 @@ public class Catalog extends Observable{
 			
 			URLConnection conn = url.openConnection();
 			conn.connect();			
-			System.out.println("Starting download: \n");
+			/*System.out.println("Starting download: \n");
 			System.out.println(">> URL: " + url);
 			System.out.println(">> Path: " + filePath);
-			System.out.println(">> Size: " + conn.getContentLength() + " bytes");
+			System.out.println(">> Size: " + conn.getContentLength() + " bytes");*/
 			message = "\nStarting download: \n" +
 					">> URL: " + url + "\n" +
 					">> Path: " + filePath + "\n" +
@@ -118,8 +128,8 @@ public class Catalog extends Observable{
      *  @param array of string
      * 
      */
-	public void searchInFile(String... strings){
-		  File archive = null;
+	public void searchInFile(String... strings)/*throws java.lang.StringIndexOutOfBoundsException*/{
+		 File archive = null;
 	      FileReader fr = null;
 	      BufferedReader br = null;
 	 
@@ -132,12 +142,20 @@ public class Catalog extends Observable{
 	 
 	         // Read file
 	         String line;
-	         while((line=br.readLine())!=null){
-	        	 if (strings.length ==1){
-	        		 searchAnyText(line, strings[0]);
-	        	 }else{
-	        		 seachCoordinates(line, strings[0], strings[1], strings[2]);
-	        	 }
+	         try{
+		         while((line=br.readLine())!=null){
+		        	 if (strings.length ==1){
+		        		 searchAnyText(line, strings[0]);
+		        	 }else{
+		        		 seachCoordinates(line, strings[0], strings[1], strings[2]);        		        		 
+		        	 }
+		         }
+	         }catch (java.lang.StringIndexOutOfBoundsException ex){
+	   			 fr.close();
+	   			 br.close();
+	   			 /*Exception e;
+	   			 throw e= new Exception();*/
+	   			 JOptionPane.showMessageDialog(null,"Incorrect coordinate format ");
 	         }
 	      }
 	      catch(Exception e){
@@ -154,6 +172,9 @@ public class Catalog extends Observable{
 	            e2.printStackTrace();
 	         }
 	      }
+	      message= "Search finished \n";
+		  setChanged();
+		  notifyObservers("clear");
 	}
 	
 	
@@ -162,29 +183,23 @@ public class Catalog extends Observable{
      *  @param line, right ascension, declination, radius
      * 
      */
-	private void seachCoordinates(String line, String ra, String dec, String radius) {
-		Star aux = new Star(ra, dec);
-		Double rad = Double.parseDouble(radius);
-		LineCatalog lineCat = new LineCatalog(line);
+	private void seachCoordinates(String line, String ra, String dec, String radius) throws java.lang.StringIndexOutOfBoundsException {
 		try{
-			Star prim = new Star(lineCat.getPrimRa(), lineCat.getPrimDec());
-			if (aux.distance(prim)<= rad){
-				setChanged();
-				notifyObservers(line);
-			}else{
-				/*
-				Star sec = new Star(lineCat.getSecRa(), lineCat.getSecDec());
-				if (aux.distance(sec)<= rad){
+			Star aux = new Star(ra, dec);
+			Double rad = Double.parseDouble(radius);
+			LineCatalog lineCat = new LineCatalog(line);
+			
+				Star prim = new Star(lineCat.getPrimRa(), lineCat.getPrimDec());
+				if (aux.distance(prim)<= rad){
 					setChanged();
 					notifyObservers(line);
 				}
-				*/
-			}
 		}catch (NumberFormatException ex){
 			//Do nothing with this star
-		}
-
-				
+		}catch (java.lang.StringIndexOutOfBoundsException e){
+			throw e;
+			//System.out.println("Incorrect coordinate format ");
+    	}			
 	}
 	/**
      *  search method for any string, notice the line where there is agreement
@@ -196,7 +211,7 @@ public class Catalog extends Observable{
 		if (index > 0){
 			setChanged();
 			notifyObservers(line);
-		}//else System.out.println(text);
+		}
 	}
 	
 
