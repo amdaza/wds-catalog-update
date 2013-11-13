@@ -21,7 +21,7 @@ import javax.swing.JOptionPane;
  * @author Alicia Mireya Daza castillo
  * @author Jorge González López
  * @author Rosa Rodríguez Navarro
- * @since 1.0
+ * @since 1.1.1
  */
 
 public class Catalog extends Observable{
@@ -154,7 +154,7 @@ public class Catalog extends Observable{
 	   			 fr.close();
 	   			 br.close();
 	   			 /*Exception e;
-	   			 throw e= new Exception();*/
+	   			 throw e= new Exception();*/	   			
 	   			 JOptionPane.showMessageDialog(null,"Incorrect coordinate format ");
 	         }
 	      }

@@ -25,7 +25,7 @@ import javax.swing.text.StyledDocument;
  * @author Alicia Mireya Daza castillo
  * @author Jorge González López
  * @author Rosa Rodríguez Navarro
- * @since 1.0
+ * @since 1.1.1
  * @see class Catalog
  */
 
@@ -118,8 +118,8 @@ public class Interface extends JFrame {
 		labelCoord = new JLabel("Coordinates:");
 		labelAnyText = new JLabel("Any text:");
 		labelRA = new JLabel("Right Ascension (e.g. 192141.60)");
-		labelDec = new JLabel("Declination (e.g. -222820.4)");
-		labelRadius = new JLabel("Radius (seconds)");
+		labelDec = new JLabel("   Declination (e.g. -222820.4)");
+		labelRadius = new JLabel("   Radius (seconds)");
 		
 		raTextField = new JTextField();
 		raTextField.setMaximumSize(new Dimension(70,20));
@@ -247,7 +247,7 @@ public class Interface extends JFrame {
 												"Alicia Mireya Daza Castillo \n"+ "Jorge González López \n" +
 												"Rosa Rodríguez Navarro\n"+
 												"date: 2014/11/01 \n"+
-												"version 1.0");
+												"version 1.1.1");
 			}
 			
 			});		
@@ -331,7 +331,9 @@ public class Interface extends JFrame {
 				int i=selecFile.showSaveDialog(Interface.this);
 				try{
 					String fileName=selecFile.getSelectedFile().getAbsolutePath();					
-					Info.saveCatalog(fileName);			    
+					Info.saveCatalog(fileName);	
+					Info.setCatalogPath(fileName);
+					open=true;
 				}
 				catch(Exception e2){};
 			}
@@ -348,6 +350,11 @@ public class Interface extends JFrame {
 	 */
 	public class StatusTextArea extends JTextArea implements Observer{
 		
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
 		public StatusTextArea(String text){
 			this.setText(text);
@@ -439,7 +446,7 @@ public class Interface extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			Object o = e.getSource();
 			if (o==searchButton1){//Search from coordinates and radius			
-				if (open==false){
+				if (open==false  ){
 					JOptionPane.showMessageDialog(null,"must open a file");
 				}
 				else{
@@ -483,7 +490,5 @@ public class Interface extends JFrame {
 			}
 		}
 	
-	
-	
-	
+		
 }

@@ -5,7 +5,7 @@ package main;
  * @author Alicia Mireya Daza castillo
  * @author Jorge González López
  * @author Rosa Rodríguez Navarro
- * @since 1.0
+ * @since 1.1.1
  */
 
 public class LineCatalog {
