@@ -5,7 +5,7 @@ package main;
  * @author Alicia Mireya Daza castillo
  * @author Jorge González López
  * @author Rosa Rodríguez Navarro
- * @since 1.0
+ * @since 1.1.1
  */
 
 public class Star {
@@ -45,13 +45,14 @@ public class Star {
     	this.r2S = r2S;
     	this.r2 = Double.parseDouble(r2S);
     }
+    
     /** construction */
     public Star(String raS, String decS) throws NumberFormatException{
     	try{
 			this.rahour = raS.substring(0, 2);
 			this.ramin = raS.substring(2, 4);
 			this.rasec = raS.substring(4, 9);
-			this.decsign = decS.substring(0, 1);
+			this.setDecsign(decS.substring(0, 1));
 			this.dechour = decS.substring(0, 3);
 			this.decmin = decS.substring(3, 5);
 			this.decsec = decS.substring(5, 9);
@@ -59,12 +60,14 @@ public class Star {
 			this.ra = 15*(Double.parseDouble(rahour)+Double.parseDouble(ramin)/60+Double.parseDouble(rasec)/3600);
 			this.dec = Double.parseDouble(dechour)>0 ? (Double.parseDouble(dechour)+Double.parseDouble(decmin)/60+Double.parseDouble(decsec)/3600) : 
 				                                       (Double.parseDouble(dechour)-Double.parseDouble(decmin)/60-Double.parseDouble(decsec)/3600);
+    	
     	}catch (NumberFormatException ex){
     		throw ex;
     	}
 	}
     
     /** Getters and setters */
+    
 	public double getRa() {
 		return ra;
 	}
@@ -173,6 +176,13 @@ public class Star {
 	public void setDecS(String decS) {
 		this.decS = decS;
 		this.dec = Double.parseDouble(decS);
+	}
+
+	public String getDecsign() {
+		return decsign;
+	}
+	public void setDecsign(String decsign) {
+		this.decsign = decsign;
 	}
 	
 	/**method to calculate the distance between two stars
