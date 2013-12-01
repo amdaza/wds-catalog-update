@@ -7,8 +7,9 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
@@ -16,8 +17,6 @@ import java.util.Observer;
 import static javax.swing.GroupLayout.Alignment.*;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
@@ -67,7 +66,6 @@ public class Interface extends JFrame {
 	
 	private JButton searchButton1;
 	private JButton searchButton2;
-	private JButton aladin;
 	private JComboBox combo;
 	private JButton selectButton;
 	private JButton clearButton;
@@ -172,9 +170,6 @@ public class Interface extends JFrame {
 		searchButton2 = new JButton("Search");
 		searchButton2.addActionListener(o);
 
-		aladin = new JButton("Aladin");
-		aladin.addActionListener(o);
-
 		ComboListener c = new ComboListener();
 		combo = new JComboBox(Constellations.names);
 		combo.setMaximumSize(new Dimension(10,15));
@@ -246,7 +241,7 @@ public class Interface extends JFrame {
 								.addComponent(searchButton1))
 						.addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 								.addComponent(labelButton)
-								.addComponent(aladin))
+								.addComponent(labelButton))
 						.addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 								.addComponent(labelCombo)
 								.addComponent(combo)))
@@ -284,7 +279,7 @@ public class Interface extends JFrame {
 			                .addComponent(decTextField)
 			                .addComponent(radiusTextField)			                
 			                .addComponent(searchButton1)
-			                .addComponent(aladin)
+			                .addComponent(labelButton)
 			                .addComponent(combo))))    
 				.addGroup(fieldsLayout.createParallelGroup(LEADING)
 					.addComponent(labelAnyText)
@@ -559,30 +554,6 @@ public class Interface extends JFrame {
 	public class ButtonListener implements ActionListener{
 		public void actionPerformed(ActionEvent e) {
 			Object o = e.getSource();
-			String ra = raTextField.getText();
-			String dec = decTextField.getText();
-			String radius = radiusTextField.getText();
-
-			if (o==aladin) {
-
-				String file = "Aladin.jar";
-				int status = JFileChooser.APPROVE_OPTION;
-				File f = new File(path, file);
-				if(!f.exists()) {
-
-				JFileChooser selecFile= new JFileChooser(path);
-				FileNameExtensionFilter filter = new FileNameExtensionFilter("Aladin jar","jar");
-				selecFile.setFileFilter(filter);
-				
-				 status=selecFile.showOpenDialog(Interface.this);
-				if(status == JFileChooser.APPROVE_OPTION)
-					 file=selecFile.getSelectedFile().getAbsolutePath();	
-				}
-				
-				if(status == JFileChooser.APPROVE_OPTION)
-					Info.aladin(file,ra,dec);
-				
-			} else
 			if (o==searchButton1){//Search from coordinates and radius			
 				if (open==false  ){
 					JOptionPane.showMessageDialog(null,"must open a file");
@@ -591,10 +562,16 @@ public class Interface extends JFrame {
 					searchCoordinates = true;
 					searchText =  searchConst =  false;
 					resultTextPane.setText("");
-
+					String ra = raTextField.getText();
+					String dec = decTextField.getText();
+					String radius = radiusTextField.getText();
 					combo.setSelectedIndex(0);
-					
-				   Info.searchInFile(Catalog.SearchMode.COORDS,ra, dec, radius);
+					//try{
+						Info.searchInFile(Catalog.SearchMode.COORDS,ra, dec, radius);
+					/*}catch (java.lang.Exception ex){
+						JOptionPane.showMessageDialog(null,"Incorrect coordinate format ");
+						incorrectFormat = true;
+					}*/
 					
 					if((resultTextPane.getText().length()==0) /*&& !incorrectFormat*/){
 						JOptionPane.showMessageDialog(null,"Coordinates not found in file");
@@ -634,10 +611,10 @@ public class Interface extends JFrame {
 					if (line.length()==130) {
   					   String id  = line.substring(10, 22);
 					   String notes = line.substring(107, 111);
-  					   String ras = line.substring(112, 121);
-  					   String decs = line.substring(121, 130);
-  					   raTextField.setText(ras);
-  					   decTextField.setText(decs);
+  					   String ra = line.substring(112, 121);
+  					   String dec = line.substring(121, 130);
+  					   raTextField.setText(ra);
+  					   decTextField.setText(dec);
   					   Info.showNotes(id,notes);
 				     }
 			}
