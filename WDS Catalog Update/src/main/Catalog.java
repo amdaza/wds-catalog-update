@@ -6,10 +6,13 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Observable;
 
 import javax.swing.JOptionPane;
@@ -70,6 +73,48 @@ public class Catalog extends Observable{
 		this.message = message;
 	}
 
+	/**
+	 * Opens Aladin for the given coordinates
+	 * 
+	 * @param filePath, ra, dec
+	 */
+	public void aladin(String filePath, String ras, String decs) {
+		try {
+		Star s = new Star(ras,decs);
+		double ra = s.getRa();
+		double dec = s.getDec();
+		
+				
+		Process p;
+		String command = " -script=\""+ 
+				                                  "get " +(dec<0 ? ( dec < -50 ? "  aladin(AA0,R-DSS2) " : "  aladin(SERC,I) ") : "aladin(POSII,F) " )+ra+" "+dec+"; " +
+		                                          "get VizieR(WDS);"+
+				                                    "\"";
+		command = "java -jar "+filePath + command;
+//	   System.out.println(command);
+	//	
+		 p =  Runtime.getRuntime().exec(command);
+
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+     	catch (NumberFormatException e1) {
+			message = "Erroneous coordinates, Aladin cannot be launched";
+			setChanged();
+			notifyObservers("clear");
+
+     	} catch (StringIndexOutOfBoundsException e1) {
+			message = "Erroneous coordinates, Aladin cannot be launched";
+			setChanged();
+			notifyObservers("clear");
+
+     		
+     	}
+
+	}
+
+		
 	/**
 	 * Downloads WDS Catalog and saves it in /downloads/catalog.txt
 	 * 
