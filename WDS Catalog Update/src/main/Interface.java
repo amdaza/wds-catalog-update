@@ -22,6 +22,7 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
+
 /**
  * 
  * class Interface
@@ -402,15 +403,34 @@ public class Interface extends JFrame {
 				@SuppressWarnings("unused")
 				int i=selecFile.showSaveDialog(Interface.this);
 				try{
-					String fileName=selecFile.getSelectedFile().getAbsolutePath();					
-					Info.saveCatalog(fileName);	
-					Info.setCatalogPath(fileName);
-					open=true;
+					String fileName=selecFile.getSelectedFile().getAbsolutePath();
+					String fileNotes = fileName+".notes";
+					if (alreadyexists(fileName) && alreadyexists(fileNotes)){
+					    Info.saveCatalog(fileName,fileNotes);	
+					    Info.setCatalogPath(fileName);
+					    open=true;
+					}
 				}
 				catch(Exception e2){};
 			}
 			});
 		return downCatalFileItem;
+	}
+
+	private boolean alreadyexists(String file ) {
+		boolean value = true;
+		File f = new File(file);
+		
+		if (f.exists()) {
+			 int result = JOptionPane.showConfirmDialog(Interface.this, 
+					       new String("The file \n"+file+"\n exists, overwrite?"),
+                     "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
+             if (result == JOptionPane.YES_OPTION) 
+                 value = true;
+             else value = false;    
+             
+		}
+		return value;
 	}
 
 	
