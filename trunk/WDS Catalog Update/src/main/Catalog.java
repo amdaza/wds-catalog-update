@@ -75,7 +75,7 @@ public class Catalog extends Observable{
 	 * 
 	 * @param filePath
 	 */
-	public void saveCatalog(String filePath) {
+	public void saveCatalog(String filePath, String fileNotesPath) {
 		try {
 			message = "Dowloading...";
 			setChanged();
@@ -113,6 +113,8 @@ public class Catalog extends Observable{
 				}
 		
 	}
+	
+
 	
 	private void download(URL url, String filePath) throws IOException {
 		File file = new File(filePath);
