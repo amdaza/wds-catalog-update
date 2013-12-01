@@ -7,6 +7,10 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -49,6 +53,9 @@ public class Interface extends JFrame {
 	private JLabel labelRA;
 	private JLabel labelDec;
 	private JLabel labelRadius;
+	private JLabel labelCombo;
+	private JLabel labelButton; // only for the space before constellation
+
 	private JLabel labelWDShead1;
 	private JLabel labelWDShead2;
 	
@@ -59,11 +66,15 @@ public class Interface extends JFrame {
 	
 	private JButton searchButton1;
 	private JButton searchButton2;
+	private JComboBox combo;
+	private JButton selectButton;
 	private JButton clearButton;
+	private JButton notesButton;
 	
 	private JTextPane resultTextPane;
 	
 	private JScrollPane scrollPanel; 
+	private JScrollPane scrollstatusPanel; 
 	
 	private static StatusTextArea statusTextArea;
 	
@@ -72,6 +83,7 @@ public class Interface extends JFrame {
 	private boolean open=false;	
 	private boolean searchText;
 	private boolean searchCoordinates;
+	private boolean searchConst;
 	
 	// path to the application
 	String path;
@@ -105,13 +117,28 @@ public class Interface extends JFrame {
 		this.setTitle("WDS Catalog");
 		this.setEnabled(true);
 		this.setVisible(true);
-		this.setSize(1140, 640);
+		this.setSize(1120, 640);
 		this.setJMenuBar(getMenBar());
 		this.setContentPane(globalPanel());
 		this.validate();
-		path =  System.getProperty("user.dir"); //new File(".").getCanonicalPath();		
+		path =  System.getProperty("user.dir"); //new File(".").getCanonicalPath();
+		checkExistingFile("wds.txt");
 	}
 	
+	// try to open the name file by default
+	private void checkExistingFile(String name) {
+		File f = new File(path, name);
+		if(f.exists())
+			try {
+				Info.setCatalogPath(f.getCanonicalPath());	
+				open=true;
+
+			} catch (IOException e) {				
+				e.printStackTrace();
+				Info = new Catalog();
+			}				
+
+	}
 	
 	/** interface creation method */
 	private JPanel globalPanel() {
@@ -120,6 +147,8 @@ public class Interface extends JFrame {
 		labelRA = new JLabel("Right Ascension (e.g. 192141.60)");
 		labelDec = new JLabel("   Declination (e.g. -222820.4)");
 		labelRadius = new JLabel("   Radius (seconds)");
+		labelButton = new JLabel("                                                  ");
+		labelCombo = new JLabel("Filter by constellation");
 		
 		raTextField = new JTextField();
 		raTextField.setMaximumSize(new Dimension(70,20));
@@ -132,7 +161,7 @@ public class Interface extends JFrame {
 		searchTextField.setMaximumSize(new Dimension(1500,20));
 
 		labelWDShead1 = new JLabel("    WDS   Discovr Comp  EPOCH      #  THETA       RHO     Magnitudes Spectral  Prop Mot  2nd PM   DM Desig Note     Precise");
-		labelWDShead2 = new JLabel("Identifier             Frst Last      Fst Lst First  Last  Pri   Sec  Type      RA\" DEC\" RA\" DEC\"                 Coordinate");
+		labelWDShead2 = new JLabel("Identifier             Frst Last      Fst Lst First  Last  Pri   Sec  Type      RA\" DEC\" RA\" DEC\"                 Coordinates");
 		
 		ButtonListener o = new ButtonListener();
 		searchButton1 = new JButton("Search");
@@ -140,11 +169,23 @@ public class Interface extends JFrame {
 		
 		searchButton2 = new JButton("Search");
 		searchButton2.addActionListener(o);
-		
+
+		ComboListener c = new ComboListener();
+		combo = new JComboBox(Constellations.names);
+		combo.setMaximumSize(new Dimension(10,15));
+		combo.addActionListener(c);
+
+		selectButton = new JButton("Select All");
+		selectButton.addActionListener(o);
+
 		clearButton = new JButton("Clear");
 		clearButton.addActionListener(o);
-		
+
+		notesButton = new JButton("Get Notes");
+		notesButton.addActionListener(o);
+
 		resultTextPane = new JTextPane();
+
 		
 		scrollPanel = new JScrollPane(resultTextPane); 
 		scrollPanel.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
@@ -153,10 +194,15 @@ public class Interface extends JFrame {
 		resultTextPane.setFont( font );
 		labelWDShead1.setFont(font);
 		labelWDShead2.setFont(font);
+
 		
 		statusTextArea = new StatusTextArea(statusMessage);
+		
+		scrollstatusPanel = new JScrollPane(statusTextArea); 
+		scrollstatusPanel.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 
 		Info.addObserver(statusTextArea);
+		scrollstatusPanel.setVisible(true);
 		statusTextArea.setVisible(true);
 		statusTextArea.setEditable(false);
 		
@@ -190,18 +236,32 @@ public class Interface extends JFrame {
 							.addComponent(decTextField))
 						.addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 								.addComponent(labelRadius)
-								.addComponent(radiusTextField)))
-					.addComponent(searchTextField)
+								.addComponent(radiusTextField)) 		
+						.addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+								.addComponent(searchButton1))
+						.addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+								.addComponent(labelButton)
+								.addComponent(labelButton))
+						.addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+								.addComponent(labelCombo)
+								.addComponent(combo)))
+				.addGroup(fieldsLayout.createParallelGroup(LEADING)
+					.addGroup(fieldsLayout.createSequentialGroup()								
+					     .addComponent(searchTextField)
+					     .addComponent(searchButton2)))
 					.addComponent(labelWDShead1)
 				    .addComponent(labelWDShead2)
 					.addComponent(scrollPanel)
-					.addComponent(statusTextArea))
-				.addGroup(fieldsLayout.createParallelGroup(CENTER)
-					.addComponent(searchButton1)
-					.addComponent(searchButton2)
-					.addComponent(clearButton))
+					.addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+							.addGroup(fieldsLayout.createSequentialGroup()
+									.addComponent(selectButton)
+									.addComponent(clearButton)
+									.addComponent(notesButton)))
+					.addComponent(scrollstatusPanel))
+				.addGroup(fieldsLayout.createParallelGroup(CENTER))				
+//					.addComponent(searchButton2))				
 		);
-		fieldsLayout.linkSize(SwingConstants.HORIZONTAL, searchButton1);
+		fieldsLayout.linkSize(SwingConstants.HORIZONTAL, searchButton2);
 
 		fieldsLayout.setVerticalGroup(fieldsLayout.createSequentialGroup()
 				.addGroup(fieldsLayout.createParallelGroup(CENTER)
@@ -210,25 +270,36 @@ public class Interface extends JFrame {
 			            .addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 			                .addComponent(labelRA)
 			                .addComponent(labelDec)
-			                .addComponent(labelRadius))
+			                .addComponent(labelRadius)
+			                .addComponent(labelButton)
+			                .addComponent(labelCombo))
+
 			            .addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 			                .addComponent(raTextField)
 			                .addComponent(decTextField)
-			                .addComponent(radiusTextField))) 
-			            .addComponent(searchButton1))
+			                .addComponent(radiusTextField)			                
+			                .addComponent(searchButton1)
+			                .addComponent(labelButton)
+			                .addComponent(combo))))    
 				.addGroup(fieldsLayout.createParallelGroup(LEADING)
 					.addComponent(labelAnyText)
 					.addComponent(searchTextField)
 					.addComponent(searchButton2))
+				.addGroup(fieldsLayout.createParallelGroup(LEADING)
+					.addComponent(labelAnyText)
+					.addComponent(searchTextField))
 				.addGroup(fieldsLayout.createParallelGroup(LEADING)					
     				    .addComponent(labelWDShead1))
                 .addGroup(fieldsLayout.createParallelGroup(LEADING)					
     					.addComponent(labelWDShead2))
 				.addGroup(fieldsLayout.createParallelGroup(LEADING)
-					.addGroup(fieldsLayout.createParallelGroup(CENTER)
-						.addComponent(scrollPanel)
-						.addComponent(clearButton))
-				)	.addComponent(statusTextArea)
+						.addComponent(scrollPanel))
+				.addGroup(fieldsLayout.createParallelGroup(LEADING)						
+						    .addComponent(selectButton)
+					   	    .addComponent(clearButton)
+					   	    .addComponent(notesButton))
+                .addGroup(fieldsLayout.createParallelGroup(LEADING)					   	    
+				    .addComponent(scrollstatusPanel))
 		);	
 		mainPanel.add("North",menuBar);
 		mainPanel.add("Center",fieldsPanel);
@@ -246,8 +317,9 @@ public class Interface extends JFrame {
 				JOptionPane.showMessageDialog(null,"application developed by: \n "+
 												"Alicia Mireya Daza Castillo \n"+ "Jorge González López \n" +
 												"Rosa Rodríguez Navarro\n"+
-												"date: 2014/11/01 \n"+
-												"version 1.1.1");
+												"Rofael Caballero Roldán\n"+
+												"date: 2014/11/30 \n"+
+												"version 1.1.2");
 			}
 			
 			});		
@@ -366,8 +438,9 @@ public class Interface extends JFrame {
 				this.append(Info.getMessage());
 			}else if (arg1.equals("clear")){
 				this.setText(Info.getMessage());
-			}else if (searchText){// arg1 is the line to show
-				this.setText("Search any text from Catalog");
+			}else if (searchText || searchCoordinates || searchConst){// arg1 is the line to show
+				if (searchText  || searchConst)
+				this.setText(searchText ? "Search any text from Catalog": "Search by constellation");
 				String searchText = searchTextField.getText();
 				
 				int index1 = ((String) arg1).indexOf(searchText);
@@ -437,6 +510,42 @@ public class Interface extends JFrame {
 
 	}
 	
+	
+	/**
+	 *  class ComboListener
+	 */
+	public class ComboListener implements ActionListener {
+	    /** Listens to the combo box. */
+	    public void actionPerformed(ActionEvent e) {
+	        JComboBox cb = (JComboBox)e.getSource();
+	        int n = cb.getSelectedIndex();
+	        if (n!=0) {
+	          String abr =	Constellations.abrev[n-1];
+				if (open==false  ){
+					JOptionPane.showMessageDialog(null,"must open a file");
+				}
+				else{
+					searchConst = true;
+					searchText =  searchCoordinates =  false;
+					resultTextPane.setText("");
+					raTextField.setText("");
+					decTextField.setText("");
+		            radiusTextField.setText("");
+		            searchTextField.setText("");
+					Info.searchInFile(Catalog.SearchMode.CONST,abr);
+					if(resultTextPane.getText().length()==0){
+						JOptionPane.showMessageDialog(null,"No pair found in constellation '" + cb.getSelectedItem());
+					}
+
+
+				
+				}
+
+	        }
+	        
+	    }
+	}
+
 	/**
 	 * 
 	 * class ButtonListener
@@ -451,13 +560,14 @@ public class Interface extends JFrame {
 				}
 				else{
 					searchCoordinates = true;
-					searchText = false;
+					searchText =  searchConst =  false;
 					resultTextPane.setText("");
 					String ra = raTextField.getText();
 					String dec = decTextField.getText();
-					String radius = radiusTextField.getText();	
+					String radius = radiusTextField.getText();
+					combo.setSelectedIndex(0);
 					//try{
-						Info.searchInFile(ra, dec, radius);
+						Info.searchInFile(Catalog.SearchMode.COORDS,ra, dec, radius);
 					/*}catch (java.lang.Exception ex){
 						JOptionPane.showMessageDialog(null,"Incorrect coordinate format ");
 						incorrectFormat = true;
@@ -473,22 +583,42 @@ public class Interface extends JFrame {
 						JOptionPane.showMessageDialog(null,"must open a file");
 					}
 					else{
-				
-						searchCoordinates = false;
+						combo.setSelectedIndex(0);				
+						searchCoordinates = searchConst = false;
 						searchText = true;
 						resultTextPane.setText("");
-						Info.searchInFile(searchTextField.getText());
+						Info.searchInFile(Catalog.SearchMode.TEXT,searchTextField.getText());
 						if(resultTextPane.getText().length()==0){
 							JOptionPane.showMessageDialog(null,"'" + searchTextField.getText() +"' not found in file");
 						}
 					}
 				}else if(o== clearButton){
 							resultTextPane.setText("");
+							combo.setSelectedIndex(0);
+							resultTextPane.setText("");
+					       raTextField.setText("");
+					       decTextField.setText("");
+		                   radiusTextField.setText("");
+		                   searchTextField.setText("");
 							resultTextPane.revalidate();
 					        resultTextPane.update(resultTextPane.getGraphics());
-				}
+				}else if(o== selectButton){
+					resultTextPane.requestFocusInWindow();
+					resultTextPane.selectAll();
+				}else if(o== notesButton){
+					resultTextPane.requestFocusInWindow();
+					String line = resultTextPane.getSelectedText();
+					if (line.length()==130) {
+  					   String id  = line.substring(10, 22);
+					   String notes = line.substring(107, 111);
+  					   String ra = line.substring(112, 121);
+  					   String dec = line.substring(121, 130);
+  					   raTextField.setText(ra);
+  					   decTextField.setText(dec);
+  					   Info.showNotes(id,notes);
+				     }
 			}
 		}
-	
+	}
 		
 }
