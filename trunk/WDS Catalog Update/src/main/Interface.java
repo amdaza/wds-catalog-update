@@ -590,6 +590,8 @@ public class Interface extends JFrame {
 					if(resultTextPane.getText().length()==0){
 						JOptionPane.showMessageDialog(null,"No pair found in constellation '" + cb.getSelectedItem());
 					}
+
+
 				
 				}
 
@@ -710,11 +712,10 @@ public class Interface extends JFrame {
 		
 		if (!found) {
 			JFileChooser selecFile= new JFileChooser(path);
-			selecFile.setSelectedFile(new File("Aladin.jar"));
+			
 			int status=selecFile.showOpenDialog(Interface.this);
 			if(status == JFileChooser.APPROVE_OPTION){
 				FileName=selecFile.getSelectedFile().getAbsolutePath();	
-				found=true;
 			}
 
 		}
