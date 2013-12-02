@@ -195,7 +195,7 @@ public class Catalog extends Observable{
 	   			 br.close();
 	   			 /*Exception e;
 	   			 throw e= new Exception();*/	   			
-	   			 JOptionPane.showMessageDialog(null,"Incorrect coordinate format ");
+	   			 JOptionPane.showMessageDialog(null,ex.getMessage());
 	         }
 	      }
 	      catch(Exception e){
@@ -389,7 +389,7 @@ public class Catalog extends Observable{
 		if (index > 0){
 			setChanged();
 			notifyObservers(line);
-		}
+		} 	
 	}	
 		/**
 	     *  show notes for a given WDS id
