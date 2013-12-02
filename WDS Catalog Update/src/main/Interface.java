@@ -641,4 +641,95 @@ public class Interface extends JFrame {
 		}
 	}
 		
+<<<<<<< .mine
+		} catch(Exception e) {
+			
+		}
+	}
+	
+	private   void openWebpage(URI uri) {
+	    Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+	    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+	        try {
+	            desktop.browse(uri);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+	}
+
+	private   void openWebpage(URL url) {
+	    try {
+	        openWebpage(url.toURI());
+	    } catch (URISyntaxException e) {
+	        e.printStackTrace();
+	    }
+	}
+	public void aladin(String path, String ra, String de) {
+		String FileName = "Aladin.jar";
+		boolean found = false;
+		File f = new File(FileName);
+		
+		if (!f.exists()) {
+			FileName = "aladin.jar";
+			File f2 = new File(FileName);
+			if (f2.exists()) found=true;
+		} else  found=true; 
+		
+		if (!found) {
+			JFileChooser selecFile= new JFileChooser(path);
+			selecFile.setSelectedFile(new File("Aladin.jar"));
+			int status=selecFile.showOpenDialog(Interface.this);
+			if(status == JFileChooser.APPROVE_OPTION){
+				FileName=selecFile.getSelectedFile().getAbsolutePath();	
+				found=true;
+			}
+
+		}
+		if (found)  Info.aladin(FileName, ra, de);				
+
+	}
+
+	private void searchAnyText() {
+		if (open==false){
+			JOptionPane.showMessageDialog(null,"must open a file");
+		}
+		else{
+			String text = searchTextField.getText(); 
+			combo.setSelectedIndex(0);				
+			searchCoordinates = searchConst = false;
+			searchText = true;
+			resultTextPane.setText("");
+			int i=0;
+			int max=5;
+			boolean found=false;
+			for (i=0; i<max && !found; i++) {
+			    Info.searchInFile(Catalog.SearchMode.TEXT,text);
+			    if(resultTextPane.getText().length()==0){
+			    	int pos = -1;
+			    	boolean posfound=false;
+			    	text = text.trim();
+			    	for (int j=0; j<text.length()-1 && !posfound; j++) 
+			    		if  (text.charAt(j)==' ' || 
+			    		      (Character.isLetter(text.charAt(j)) &&  (Character.isDigit(text.charAt(j+1))) ) ) {
+			    			posfound=true;
+			    			pos = j+1;
+			    		}
+			    	
+					if (pos !=-1)
+					   text = text.substring(0, pos)+" "+text.substring(pos);
+					else found=true;
+
+			    } else found=true;
+			}
+			if(resultTextPane.getText().length()==0){
+				JOptionPane.showMessageDialog(null,"'" + searchTextField.getText() +"' not found in file");
+			}
+		}
+
+	}
+	
+		
+=======
+>>>>>>> .r19
 }
