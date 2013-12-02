@@ -58,7 +58,7 @@ public class Star {
 			this.decsec = decS.substring(5, 9);
 			
 			this.ra = 15*(Double.parseDouble(rahour)+Double.parseDouble(ramin)/60+Double.parseDouble(rasec)/3600);
-			this.dec = Double.parseDouble(dechour)>0 ? (Double.parseDouble(dechour)+Double.parseDouble(decmin)/60+Double.parseDouble(decsec)/3600) : 
+			this.dec = Double.parseDouble(dechour)>=0 ? (Double.parseDouble(dechour)+Double.parseDouble(decmin)/60+Double.parseDouble(decsec)/3600) : 
 				                                       (Double.parseDouble(dechour)-Double.parseDouble(decmin)/60-Double.parseDouble(decsec)/3600);
     	
     	}catch (NumberFormatException ex){
