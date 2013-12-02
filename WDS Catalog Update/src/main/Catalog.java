@@ -12,6 +12,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Observable;
 
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 /**
@@ -70,6 +71,37 @@ public class Catalog extends Observable{
 		this.message = message;
 	}
 
+	/**
+	 * Launch Aladin
+	 * 
+	 * @param ra,dec
+	 */
+	public void aladin(String path, String ras, String des) {
+		try {
+		   Star s = new Star(ras,des);
+		   double ra =s.getRa();
+		   double dec = s.getDec();
+		    // Run a java app in a separate system process
+		   String command = "java -jar "+path + " -script=\"get " +
+				                      "aladin(2MASS,J) "+ra+" "+dec+"; "+
+				                     	" get VizieR(WDS); " +     
+				                      " get "+
+		                               (dec > 0 ?
+		                               "aladin(POSSII,F) "  : "aladin(SERC,J) ")		                            	   
+		                            	       +ra+" "+dec+"; "+
+		                               " sync; zoom 2x;"+
+		                              "\"";
+//		 System.out.println(command);
+           Process proc = Runtime.getRuntime().exec(command);
+		} catch(Exception e){
+			message = "Error: aladin cannot be launched";
+			setChanged();
+			notifyObservers("clear");
+		}
+
+
+	}
+	
 	/**
 	 * Downloads WDS Catalog and saves it in /downloads/catalog.txt
 	 * 

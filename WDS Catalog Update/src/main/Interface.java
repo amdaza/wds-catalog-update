@@ -2,6 +2,7 @@ package main;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -11,6 +12,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -71,6 +75,8 @@ public class Interface extends JFrame {
 	private JButton selectButton;
 	private JButton clearButton;
 	private JButton notesButton;
+	private JButton aladin;
+	private JButton sdss;
 	
 	private JTextPane resultTextPane;
 	
@@ -148,7 +154,7 @@ public class Interface extends JFrame {
 		labelRA = new JLabel("Right Ascension (e.g. 192141.60)");
 		labelDec = new JLabel("   Declination (e.g. -222820.4)");
 		labelRadius = new JLabel("   Radius (seconds)");
-		labelButton = new JLabel("                                                  ");
+		labelButton = new JLabel("                       ");
 		labelCombo = new JLabel("Filter by constellation");
 		
 		raTextField = new JTextField();
@@ -159,7 +165,20 @@ public class Interface extends JFrame {
 		radiusTextField.setMaximumSize(new Dimension(50,20));
 		
 		searchTextField = new JTextField();		
-		searchTextField.setMaximumSize(new Dimension(1500,20));
+		searchTextField.setMaximumSize(new Dimension(1300,20));
+		int condition = JComponent.WHEN_FOCUSED;
+		  InputMap iMap = searchTextField.getInputMap(condition);
+		  ActionMap aMap = searchTextField.getActionMap();
+
+		  // the search text allows enter
+		  String enter = "enter";
+		  iMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), enter);
+		  aMap.put(enter, new AbstractAction() {
+		     @Override
+		     public void actionPerformed(ActionEvent arg0) {
+		        searchAnyText();
+		     }
+		  });
 
 		labelWDShead1 = new JLabel("    WDS   Discovr Comp  EPOCH      #  THETA       RHO     Magnitudes Spectral  Prop Mot  2nd PM   DM Desig Note     Precise");
 		labelWDShead2 = new JLabel("Identifier             Frst Last      Fst Lst First  Last  Pri   Sec  Type      RA\" DEC\" RA\" DEC\"                 Coordinates");
@@ -182,8 +201,14 @@ public class Interface extends JFrame {
 		clearButton = new JButton("Clear");
 		clearButton.addActionListener(o);
 
-		notesButton = new JButton("Get Notes");
+		notesButton = new JButton("Get Notes/Grab Coords.");
 		notesButton.addActionListener(o);
+
+		aladin = new JButton("Aladin");
+		aladin.addActionListener(o);
+
+		sdss = new JButton("SDSS");
+		sdss.addActionListener(o);
 
 		resultTextPane = new JTextPane();
 
@@ -242,7 +267,10 @@ public class Interface extends JFrame {
 								.addComponent(searchButton1))
 						.addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 								.addComponent(labelButton)
-								.addComponent(labelButton))
+								.addComponent(aladin))
+						.addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+								.addComponent(labelButton)
+								.addComponent(sdss))								
 						.addGroup(fieldsLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
 								.addComponent(labelCombo)
 								.addComponent(combo)))
@@ -280,7 +308,8 @@ public class Interface extends JFrame {
 			                .addComponent(decTextField)
 			                .addComponent(radiusTextField)			                
 			                .addComponent(searchButton1)
-			                .addComponent(labelButton)
+			                .addComponent(aladin)
+			                .addComponent(sdss)
 			                .addComponent(combo))))    
 				.addGroup(fieldsLayout.createParallelGroup(LEADING)
 					.addComponent(labelAnyText)
@@ -320,7 +349,7 @@ public class Interface extends JFrame {
 												"Rosa Rodríguez Navarro\n"+
 												"Rafael Caballero Roldán\n"+
 												"date: 2014/11/30 \n"+
-												"version 1.1.2");
+												"version 2.1.1");
 			}
 			
 			});		
@@ -582,8 +611,11 @@ public class Interface extends JFrame {
 			String ra = raTextField.getText();
 			String dec = decTextField.getText();
 			String radius = radiusTextField.getText();
-			String text = searchTextField.getText();
-
+			
+			if (o==aladin)//launch aladin			
+				 aladin(path,ra,dec);
+			if (o==sdss)//launch sdss 
+				  sdss(ra,dec);		
 			if (o==searchButton1){//Search from coordinates and radius			
 				if (open==false  ){
 					JOptionPane.showMessageDialog(null,"must open a file");
@@ -606,31 +638,7 @@ public class Interface extends JFrame {
 				}
 			}
 			else if (o==searchButton2){//Search any text
-					if (open==false){
-						JOptionPane.showMessageDialog(null,"must open a file");
-					}
-					else{
-						combo.setSelectedIndex(0);				
-						searchCoordinates = searchConst = false;
-						searchText = true;
-						resultTextPane.setText("");
-						int i=0;
-						int max=5;
-						boolean found=false;
-						for (i=0; i<max && !found; i++) {
-						    Info.searchInFile(Catalog.SearchMode.TEXT,text);
-						    if(resultTextPane.getText().length()==0){
-								int pos = text.indexOf(' ');
-								if (pos !=-1)
-								   text = text.substring(0, pos)+" "+text.substring(pos);
-								else found=true;
-
-						    } else found=true;
-						}
-						if(resultTextPane.getText().length()==0){
-							JOptionPane.showMessageDialog(null,"'" + searchTextField.getText() +"' not found in file");
-						}
-					}
+				   searchAnyText();
 				}else if(o== clearButton){
 							resultTextPane.setText("");
 							combo.setSelectedIndex(0);
@@ -659,5 +667,100 @@ public class Interface extends JFrame {
 			}
 		}
 	}
+	
+	public void sdss(String ras, String des) {
+		try{
+			Star s = new Star(ras,des);
+			double ra = s.getRa();
+			double dec = s.getDec();
+			String uris ="http://cas.sdss.org/astro/en/tools/chart/chart.asp?ra="+ra + "&dec="+dec;
+			openWebpage(new URL(uris));
+		
+		} catch(Exception e) {
+			
+		}
+	}
+	
+	private   void openWebpage(URI uri) {
+	    Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+	    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+	        try {
+	            desktop.browse(uri);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	    }
+	}
+
+	private   void openWebpage(URL url) {
+	    try {
+	        openWebpage(url.toURI());
+	    } catch (URISyntaxException e) {
+	        e.printStackTrace();
+	    }
+	}
+	public void aladin(String path, String ra, String de) {
+		String FileName = "Aladin.jar";
+		boolean found = false;
+		File f = new File(FileName);
+		
+		if (!f.exists()) {
+			FileName = "aladin.jar";
+			File f2 = new File(FileName);
+			if (f2.exists()) found=true;
+		} else  found=true; 
+		
+		if (!found) {
+			JFileChooser selecFile= new JFileChooser(path);
+			
+			int status=selecFile.showOpenDialog(Interface.this);
+			if(status == JFileChooser.APPROVE_OPTION){
+				FileName=selecFile.getSelectedFile().getAbsolutePath();	
+			}
+
+		}
+		if (found)  Info.aladin(FileName, ra, de);				
+
+	}
+
+	private void searchAnyText() {
+		if (open==false){
+			JOptionPane.showMessageDialog(null,"must open a file");
+		}
+		else{
+			String text = searchTextField.getText(); 
+			combo.setSelectedIndex(0);				
+			searchCoordinates = searchConst = false;
+			searchText = true;
+			resultTextPane.setText("");
+			int i=0;
+			int max=5;
+			boolean found=false;
+			for (i=0; i<max && !found; i++) {
+			    Info.searchInFile(Catalog.SearchMode.TEXT,text);
+			    if(resultTextPane.getText().length()==0){
+			    	int pos = -1;
+			    	boolean posfound=false;
+			    	text = text.trim();
+			    	for (int j=0; j<text.length()-1 && !posfound; j++) 
+			    		if  (text.charAt(j)==' ' || 
+			    		      (Character.isLetter(text.charAt(j)) &&  (Character.isDigit(text.charAt(j+1))) ) ) {
+			    			posfound=true;
+			    			pos = j+1;
+			    		}
+			    	
+					if (pos !=-1)
+					   text = text.substring(0, pos)+" "+text.substring(pos);
+					else found=true;
+
+			    } else found=true;
+			}
+			if(resultTextPane.getText().length()==0){
+				JOptionPane.showMessageDialog(null,"'" + searchTextField.getText() +"' not found in file");
+			}
+		}
+
+	}
+	
 		
 }
