@@ -318,7 +318,7 @@ public class Interface extends JFrame {
 				JOptionPane.showMessageDialog(null,"application developed by: \n "+
 												"Alicia Mireya Daza Castillo \n"+ "Jorge González López \n" +
 												"Rosa Rodríguez Navarro\n"+
-												"Rofael Caballero Roldán\n"+
+												"Rafael Caballero Roldán\n"+
 												"date: 2014/11/30 \n"+
 												"version 1.1.2");
 			}
@@ -473,8 +473,9 @@ public class Interface extends JFrame {
 		        StyleConstants.setFontFamily(style, "Lucida Console");
 		        StyleConstants.setForeground(style, Color.black);
 
+		        if (index1!=-1) {
 		        try { doc.insertString(doc.getLength(), ((String) arg1).substring(0,index1),style); }
-		        catch (BadLocationException e){}
+		        catch (Exception e){}
 
 		        StyleConstants.setForeground(style, Color.red);
 
@@ -485,12 +486,16 @@ public class Interface extends JFrame {
 
 		        try { doc.insertString(doc.getLength(), ((String) arg1).substring(index2,end),style); }
 		        catch (BadLocationException e){}
+
+		        } else try { doc.insertString(doc.getLength(), ((String) arg1),style); }
+                catch (BadLocationException e){}
 		        
 		        try { doc.insertString(doc.getLength(), "\n", style); }
 		        catch (BadLocationException e){}
-		        
+ 
 		        resultTextPane.revalidate();
 		        resultTextPane.update(resultTextPane.getGraphics());
+		        
 		        
 			}else if(searchCoordinates){// arg1 is the line to show
 				this.setText("Search from Right Ascention, Declination and Radius");
@@ -574,6 +579,11 @@ public class Interface extends JFrame {
 	public class ButtonListener implements ActionListener{
 		public void actionPerformed(ActionEvent e) {
 			Object o = e.getSource();
+			String ra = raTextField.getText();
+			String dec = decTextField.getText();
+			String radius = radiusTextField.getText();
+			String text = searchTextField.getText();
+
 			if (o==searchButton1){//Search from coordinates and radius			
 				if (open==false  ){
 					JOptionPane.showMessageDialog(null,"must open a file");
@@ -582,9 +592,6 @@ public class Interface extends JFrame {
 					searchCoordinates = true;
 					searchText =  searchConst =  false;
 					resultTextPane.setText("");
-					String ra = raTextField.getText();
-					String dec = decTextField.getText();
-					String radius = radiusTextField.getText();
 					combo.setSelectedIndex(0);
 					//try{
 						Info.searchInFile(Catalog.SearchMode.COORDS,ra, dec, radius);
@@ -607,7 +614,19 @@ public class Interface extends JFrame {
 						searchCoordinates = searchConst = false;
 						searchText = true;
 						resultTextPane.setText("");
-						Info.searchInFile(Catalog.SearchMode.TEXT,searchTextField.getText());
+						int i=0;
+						int max=5;
+						boolean found=false;
+						for (i=0; i<max && !found; i++) {
+						    Info.searchInFile(Catalog.SearchMode.TEXT,text);
+						    if(resultTextPane.getText().length()==0){
+								int pos = text.indexOf(' ');
+								if (pos !=-1)
+								   text = text.substring(0, pos)+" "+text.substring(pos);
+								else found=true;
+
+						    } else found=true;
+						}
 						if(resultTextPane.getText().length()==0){
 							JOptionPane.showMessageDialog(null,"'" + searchTextField.getText() +"' not found in file");
 						}
@@ -631,10 +650,10 @@ public class Interface extends JFrame {
 					if (line.length()==130) {
   					   String id  = line.substring(10, 22);
 					   String notes = line.substring(107, 111);
-  					   String ra = line.substring(112, 121);
-  					   String dec = line.substring(121, 130);
-  					   raTextField.setText(ra);
-  					   decTextField.setText(dec);
+  					   String ras = line.substring(112, 121);
+  					   String decs = line.substring(121, 130);
+  					   raTextField.setText(ras);
+  					   decTextField.setText(decs);
   					   Info.showNotes(id,notes);
 				     }
 			}
