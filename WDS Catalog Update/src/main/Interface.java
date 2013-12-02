@@ -712,10 +712,12 @@ public class Interface extends JFrame {
 		
 		if (!found) {
 			JFileChooser selecFile= new JFileChooser(path);
+			selecFile.setSelectedFile(new File("Aladin.jar"));
 			
 			int status=selecFile.showOpenDialog(Interface.this);
 			if(status == JFileChooser.APPROVE_OPTION){
 				FileName=selecFile.getSelectedFile().getAbsolutePath();	
+				found=true;
 			}
 
 		}
