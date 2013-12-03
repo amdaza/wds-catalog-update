@@ -673,9 +673,11 @@ public class Interface extends JFrame {
 			Star s = new Star(ras,des);
 			double ra = s.getRa();
 			double dec = s.getDec();
-			String uris ="http://cas.sdss.org/astro/en/tools/chart/chart.asp?ra="+ra + "&dec="+dec;
+			String coords = "ra="+ra + "&dec="+dec;
+			String uris ="http://cas.sdss.org/astro/en/tools/chart/chart.asp?"+coords;
 			openWebpage(new URL(uris));
-		
+//		     uris  = "http://surveys.roe.ac.uk/wsa/cgi-bin/getImage.cgi?file=/disk38/wsa/ingest/fits/20080217_v4/w20080217_01110_sf_st.fit&mfid=4634512&extNo=4&lx=285&hx=584&ly=1997&hy=2297&rf=0&flip=1&uniq=5824_251_52_2927_2&xpos=150.6&ypos=151&band=H&"+coords;
+//			openWebpage(new URL(uris));
 		} catch(Exception e) {
 			
 		}
