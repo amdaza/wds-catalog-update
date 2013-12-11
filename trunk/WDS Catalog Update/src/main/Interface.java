@@ -8,8 +8,6 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -25,6 +23,17 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+
+import jxl.Workbook;
+import jxl.format.Alignment;
+import jxl.format.Border;
+import jxl.format.BorderLineStyle;
+import jxl.format.Colour;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 
 
 /**
@@ -71,12 +80,14 @@ public class Interface extends JFrame {
 	
 	private JButton searchButton1;
 	private JButton searchButton2;
+	@SuppressWarnings("rawtypes")
 	private JComboBox combo;
 	private JButton selectButton;
 	private JButton clearButton;
 	private JButton notesButton;
 	private JButton aladin;
 	private JButton sdss;
+	private JButton excelButton;
 	
 	private JTextPane resultTextPane;
 	
@@ -148,6 +159,7 @@ public class Interface extends JFrame {
 	}
 	
 	/** interface creation method */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private JPanel globalPanel() {
 		labelCoord = new JLabel("Coordinates:");
 		labelAnyText = new JLabel("Any text:");
@@ -174,7 +186,12 @@ public class Interface extends JFrame {
 		  String enter = "enter";
 		  iMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), enter);
 		  aMap.put(enter, new AbstractAction() {
-		     @Override
+		     /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
 		     public void actionPerformed(ActionEvent arg0) {
 		        searchAnyText();
 		     }
@@ -203,6 +220,9 @@ public class Interface extends JFrame {
 
 		notesButton = new JButton("Get Notes/Grab Coords.");
 		notesButton.addActionListener(o);
+		
+		excelButton = new JButton("result to .xls");
+		excelButton.addActionListener(o);
 
 		aladin = new JButton("Aladin");
 		aladin.addActionListener(o);
@@ -285,7 +305,8 @@ public class Interface extends JFrame {
 							.addGroup(fieldsLayout.createSequentialGroup()
 									.addComponent(selectButton)
 									.addComponent(clearButton)
-									.addComponent(notesButton)))
+									.addComponent(notesButton)
+									.addComponent(excelButton)))
 					.addComponent(scrollstatusPanel))
 				.addGroup(fieldsLayout.createParallelGroup(CENTER))				
 //					.addComponent(searchButton2))				
@@ -327,7 +348,8 @@ public class Interface extends JFrame {
 				.addGroup(fieldsLayout.createParallelGroup(LEADING)						
 						    .addComponent(selectButton)
 					   	    .addComponent(clearButton)
-					   	    .addComponent(notesButton))
+					   	    .addComponent(notesButton)
+					   	    .addComponent(excelButton))
                 .addGroup(fieldsLayout.createParallelGroup(LEADING)					   	    
 				    .addComponent(scrollstatusPanel))
 		);	
@@ -384,8 +406,7 @@ public class Interface extends JFrame {
 		openFileItem.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
 				
-				JFileChooser selecFile= new JFileChooser(path);
-				
+				JFileChooser selecFile= new JFileChooser(path);				
 				int status=selecFile.showOpenDialog(Interface.this);
 				if(status == JFileChooser.APPROVE_OPTION){
 					String file=selecFile.getSelectedFile().getAbsolutePath();	
@@ -570,7 +591,8 @@ public class Interface extends JFrame {
 	 */
 	public class ComboListener implements ActionListener {
 	    /** Listens to the combo box. */
-	    public void actionPerformed(ActionEvent e) {
+	    @SuppressWarnings("rawtypes")
+		public void actionPerformed(ActionEvent e) {
 	        JComboBox cb = (JComboBox)e.getSource();
 	        int n = cb.getSelectedIndex();
 	        if (n!=0) {
@@ -616,7 +638,7 @@ public class Interface extends JFrame {
 				 aladin(path,ra,dec);
 			if (o==sdss)//launch sdss 
 				  sdss(ra,dec);		
-			if (o==searchButton1){//Search from coordinates and radius			
+			if (o == searchButton1){//Search from coordinates and radius			
 				if (open==false  ){
 					JOptionPane.showMessageDialog(null,"must open a file");
 				}
@@ -637,9 +659,13 @@ public class Interface extends JFrame {
 					}
 				}
 			}
-			else if (o==searchButton2){//Search any text
-				   searchAnyText();
-				}else if(o== clearButton){
+			else if (o == searchButton2){//Search any text
+				  searchAnyText();
+				/*searchCoordinates = false;
+				searchText = true;
+				resultTextPane.setText("");
+				Info.searchInFile(Catalog.SearchMode.TEXT,searchTextField.getText());*/
+				}else if(o == clearButton){
 							resultTextPane.setText("");
 							combo.setSelectedIndex(0);
 							resultTextPane.setText("");
@@ -649,12 +675,14 @@ public class Interface extends JFrame {
 		                   searchTextField.setText("");
 							resultTextPane.revalidate();
 					        resultTextPane.update(resultTextPane.getGraphics());
-				}else if(o== selectButton){
+				}else if(o == selectButton){
 					resultTextPane.requestFocusInWindow();
 					resultTextPane.selectAll();
-				}else if(o== notesButton){
-					resultTextPane.requestFocusInWindow();
+				}else if(o == notesButton){
+					resultTextPane.requestFocusInWindow();						
 					String line = resultTextPane.getSelectedText();
+					if(line==null) JOptionPane.showMessageDialog(null,"Select coordinate");
+					else{
 					if (line.length()==130) {
   					   String id  = line.substring(10, 22);
 					   String notes = line.substring(107, 111);
@@ -664,7 +692,138 @@ public class Interface extends JFrame {
   					   decTextField.setText(decs);
   					   Info.showNotes(id,notes);
 				     }
+				}}
+				
+				else if(o == excelButton){
+					resultTextPane.requestFocusInWindow();						
+					String line = resultTextPane.getText();
+					//Dimension lines= resultTextPane.getSize();
+					writeExcel(line);
+				}
+		}
+	}
+
+	/**
+	 * @param line
+	 * @param lines
+	 */
+	public void writeExcel(String line){
+		try{
+			//create Excel workbook
+			WritableWorkbook  workbook = Workbook.createWorkbook(new File("wds.xls"));		
+			
+			
+			//create a new sheet within the workbook
+			WritableSheet sheet = workbook.createSheet("WDS1", 0);
+			
+			WritableFont tipo = new WritableFont
+					(WritableFont.TIMES, 10, WritableFont.BOLD, false);
+			WritableCellFormat  formato = new WritableCellFormat(tipo);
+			formato.setBorder(Border.ALL,BorderLineStyle.MEDIUM);
+			formato.setAlignment(Alignment.CENTRE);
+			formato.setBackground(Colour.AQUA);	
+			
+			WritableFont tipo1 = new WritableFont
+					(WritableFont.TIMES,10, WritableFont.NO_BOLD, false);
+			WritableCellFormat  formato1 = new WritableCellFormat(tipo1);
+			
+			//Create cells of various types
+			sheet.addCell(new jxl.write.Label(0, 0, "WDS",formato));
+			sheet.addCell(new jxl.write.Label(1,0,"Discovr Comp",formato));
+			sheet.addCell(new jxl.write.Label(2,0,"EPOCH",formato));
+			sheet.addCell(new jxl.write.Label(3, 0,"",formato));
+			sheet.addCell(new jxl.write.Label(4, 0,"#",formato));
+			sheet.addCell(new jxl.write.Label(5, 0,"THETA",formato));
+			sheet.addCell(new jxl.write.Label(6, 0,"",formato));
+			sheet.addCell(new jxl.write.Label(7, 0, "RHO",formato));
+			sheet.addCell(new jxl.write.Label(8, 0,"",formato));
+			sheet.addCell(new jxl.write.Label(9, 0, "Magnitudes",formato));
+			sheet.addCell(new jxl.write.Label(10, 0,"",formato));
+			sheet.addCell(new jxl.write.Label(11, 0, "Spectral",formato));
+			sheet.addCell(new jxl.write.Label(12, 0, "Prop Mot",formato));
+			sheet.addCell(new jxl.write.Label(13, 0, "2nd PM",formato));
+			sheet.addCell(new jxl.write.Label(14, 0, "DM",formato));
+			sheet.addCell(new jxl.write.Label(15, 0, "Desig",formato));
+			sheet.addCell(new jxl.write.Label(16, 0, "Note",formato));
+			sheet.addCell(new jxl.write.Label(17, 0, "Precise",formato));
+			
+			sheet.addCell(new jxl.write.Label(0, 1, "Identifier",formato));
+			sheet.addCell(new jxl.write.Label(1, 1, "",formato));
+			sheet.addCell(new jxl.write.Label(2,1,"Frst",formato));
+			sheet.addCell(new jxl.write.Label(3, 1,"Last",formato));
+			sheet.addCell(new jxl.write.Label(4, 1,"",formato));
+			sheet.addCell(new jxl.write.Label(5, 1, "Fst",formato));
+			sheet.addCell(new jxl.write.Label(6, 1, "Lst",formato));
+			sheet.addCell(new jxl.write.Label(7, 1, "First",formato));
+			sheet.addCell(new jxl.write.Label(8, 1, "Last",formato));			
+			sheet.addCell(new jxl.write.Label(9, 1, "Pri",formato));
+			sheet.addCell(new jxl.write.Label(10, 1, "Sec",formato));
+			sheet.addCell(new jxl.write.Label(11,1, "Type",formato));
+			sheet.addCell(new jxl.write.Label(12, 1, "RA DEC",formato));
+			sheet.addCell(new jxl.write.Label(13, 1, "RA DEC",formato));
+			sheet.addCell(new jxl.write.Label(14,1, "",formato));
+			sheet.addCell(new jxl.write.Label(15,1, "",formato));
+			sheet.addCell(new jxl.write.Label(16,1, "",formato));
+			sheet.addCell(new jxl.write.Label(17,1, "Coordinates",formato));	
+			
+			int car=0;
+			int j= 2;
+			while (car<line.length()){
+				String id  = line.substring(car, car+13);
+				String discovr = line.substring(car+13,car+21);	
+				String EpochFirst= line.substring(car+23,car+28);
+				String EpochLast= line.substring(car+28,car+32);
+				String contador= line.substring(car+34,car+37);
+				String thetaFirt= line.substring(car+38,car+41);
+				String thetaLast= line.substring(car+42,car+45);
+				String roFirt= line.substring(car+47,car+51);
+				String roLast= line.substring(car+53,car+57);
+				String magPri= line.substring(car+58,car+63);
+				String magSec= line.substring(car+64,car+69);
+				String type= line.substring(car+70,car+79);
+				String PropRa= line.substring(car+80,car+88);
+				String secRa= line.substring(car+89,car+97);
+				String dm= line.substring(car+99,car+101);
+				String desig= line.substring(car+104,car+106);
+				String note= line.substring(car+107,car+111);
+				String coord= line.substring(car+112,car+130);
+				int i=0;
+			          
+				sheet.addCell(new jxl.write.Label(i, j, id, formato1));
+				sheet.addCell(new jxl.write.Label(i + 1, j, discovr, formato1));
+				sheet.addCell(new jxl.write.Label(i + 2, j, EpochFirst,formato1));
+				sheet.addCell(new jxl.write.Label(i + 3, j, EpochLast, formato1));
+				sheet.addCell(new jxl.write.Label(i + 4, j, contador, formato1));
+				sheet.addCell(new jxl.write.Label(i + 5, j, thetaFirt, formato1));
+				sheet.addCell(new jxl.write.Label(i + 6, j, thetaLast, formato1));
+				sheet.addCell(new jxl.write.Label(i + 7, j, roFirt, formato1));
+				sheet.addCell(new jxl.write.Label(i + 8, j, roLast, formato1));
+				sheet.addCell(new jxl.write.Label(i + 9, j, magPri, formato1));
+				sheet.addCell(new jxl.write.Label(i + 10, j, magSec, formato1));
+				sheet.addCell(new jxl.write.Label(i + 11, j, type, formato1));
+				sheet.addCell(new jxl.write.Label(i + 12, j, PropRa, formato1));
+				sheet.addCell(new jxl.write.Label(i + 13, j, secRa, formato1));
+				sheet.addCell(new jxl.write.Label(i + 14, j, dm, formato1));
+				sheet.addCell(new jxl.write.Label(i + 15, j, desig, formato1));
+				sheet.addCell(new jxl.write.Label(i + 16, j, note, formato1));
+				sheet.addCell(new jxl.write.Label(i + 17, j, coord, formato1));					
+					 
+			    
+				j++;
+				car+=132;
 			}
+			
+			workbook.write();
+			workbook.close();
+			
+		}
+		catch (IOException ex)
+		{
+			JOptionPane.showMessageDialog(null,"Failed to create file");
+		}
+		catch (WriteException ex)
+		{
+			JOptionPane.showMessageDialog(null,"Error writing file");
 		}
 	}
 	
