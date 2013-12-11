@@ -12,7 +12,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Observable;
 
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 /**
@@ -92,7 +91,8 @@ public class Catalog extends Observable{
 		                               " sync; zoom 2x;"+
 		                              "\"";
 //		 System.out.println(command);
-           Process proc = Runtime.getRuntime().exec(command);
+           @SuppressWarnings("unused")
+		Process proc = Runtime.getRuntime().exec(command);
 		} catch(Exception e){
 			message = "Error: aladin cannot be launched";
 			setChanged();
@@ -418,7 +418,7 @@ public class Catalog extends Observable{
      */
 	public void searchAnyText(String line, String text){
 		int index = line.indexOf(text);
-		if (index > 0){
+		if (index >= 0){
 			setChanged();
 			notifyObservers(line);
 		} 	
