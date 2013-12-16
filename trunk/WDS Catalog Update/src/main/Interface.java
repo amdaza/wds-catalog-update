@@ -102,6 +102,7 @@ public class Interface extends JFrame {
 	private boolean searchText;
 	private boolean searchCoordinates;
 	private boolean searchConst;
+	private boolean loadWDS=false;
 	
 	// path to the application
 	String path;
@@ -221,7 +222,7 @@ public class Interface extends JFrame {
 		notesButton = new JButton("Get Notes/Grab Coords.");
 		notesButton.addActionListener(o);
 		
-		excelButton = new JButton("result to .xls");
+		excelButton = new JButton("Export to .xls");
 		excelButton.addActionListener(o);
 
 		aladin = new JButton("Aladin");
@@ -410,7 +411,8 @@ public class Interface extends JFrame {
 				int status=selecFile.showOpenDialog(Interface.this);
 				if(status == JFileChooser.APPROVE_OPTION){
 					String file=selecFile.getSelectedFile().getAbsolutePath();	
-					Info.setCatalogPath(file);				
+					Info.setCatalogPath(file);
+
 				}
 				open=true;
 			}	
@@ -508,6 +510,8 @@ public class Interface extends JFrame {
 				this.append(Info.getMessage());
 			}else if (arg1.equals("clear")){
 				this.setText(Info.getMessage());
+			} else if (loadWDS) {
+				resultTextPane.setText(new String( (byte[])arg1));
 			}else if (searchText || searchCoordinates || searchConst){// arg1 is the line to show
 				if (searchText  || searchConst)
 				this.setText(searchText ? "Search any text from Catalog": "Search by constellation");
@@ -543,8 +547,8 @@ public class Interface extends JFrame {
 		        try { doc.insertString(doc.getLength(), "\n", style); }
 		        catch (BadLocationException e){}
  
-		        resultTextPane.revalidate();
-		        resultTextPane.update(resultTextPane.getGraphics());
+		        //resultTextPane.revalidate();
+		        //resultTextPane.update(resultTextPane.getGraphics());
 		        
 		        
 			}else if(searchCoordinates){// arg1 is the line to show
@@ -575,12 +579,12 @@ public class Interface extends JFrame {
 		        try { doc.insertString(doc.getLength(), "\n", style); }
 		        catch (BadLocationException e){}
 		        
-		        resultTextPane.revalidate();
-		        resultTextPane.update(resultTextPane.getGraphics());
+		        //resultTextPane.revalidate();
+		        //resultTextPane.update(resultTextPane.getGraphics());
 			}
 			
-			this.revalidate();
-			this.update(this.getGraphics());
+			//this.revalidate();
+			//this.update(this.getGraphics());
 		}
 
 	}
@@ -640,7 +644,7 @@ public class Interface extends JFrame {
 				  sdss(ra,dec);		
 			if (o == searchButton1){//Search from coordinates and radius			
 				if (open==false  ){
-					JOptionPane.showMessageDialog(null,"must open a file");
+					JOptionPane.showMessageDialog(null,"First open the WDS file");
 				}
 				else{
 					searchCoordinates = true;
@@ -666,15 +670,7 @@ public class Interface extends JFrame {
 				resultTextPane.setText("");
 				Info.searchInFile(Catalog.SearchMode.TEXT,searchTextField.getText());*/
 				}else if(o == clearButton){
-							resultTextPane.setText("");
-							combo.setSelectedIndex(0);
-							resultTextPane.setText("");
-					       raTextField.setText("");
-					       decTextField.setText("");
-		                   radiusTextField.setText("");
-		                   searchTextField.setText("");
-							resultTextPane.revalidate();
-					        resultTextPane.update(resultTextPane.getGraphics());
+					clear();
 				}else if(o == selectButton){
 					resultTextPane.requestFocusInWindow();
 					resultTextPane.selectAll();
@@ -698,8 +694,23 @@ public class Interface extends JFrame {
 					resultTextPane.requestFocusInWindow();						
 					String line = resultTextPane.getText();
 					//Dimension lines= resultTextPane.getSize();
-					writeExcel(line);
+				    	writeExcel(line);
+				
+					
 				}
+		}
+		
+		private void clear() {
+			resultTextPane.setText("");
+			combo.setSelectedIndex(0);
+			resultTextPane.setText("");
+	       raTextField.setText("");
+	       decTextField.setText("");
+           radiusTextField.setText("");
+           searchTextField.setText("");
+			resultTextPane.revalidate();
+	        resultTextPane.update(resultTextPane.getGraphics());
+
 		}
 	}
 
@@ -888,10 +899,16 @@ public class Interface extends JFrame {
 
 	private void searchAnyText() {
 		if (open==false){
-			JOptionPane.showMessageDialog(null,"must open a file");
+			JOptionPane.showMessageDialog(null,"First open the WDS file (menu File)");
 		}
 		else{
-			String text = searchTextField.getText(); 
+		
+			String text = searchTextField.getText();
+			if (text.length()==0){
+				loadWDS = true;
+				Info.readCatalog();
+				loadWDS = false;
+			} else {
 			combo.setSelectedIndex(0);				
 			searchCoordinates = searchConst = false;
 			searchText = true;
@@ -925,5 +942,5 @@ public class Interface extends JFrame {
 
 	}
 	
-		
+	}
 }

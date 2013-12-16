@@ -7,12 +7,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Observable;
 
 import javax.swing.JOptionPane;
+
 
 /**
  * This class download the file. Txt WDS
@@ -58,6 +60,7 @@ public class Catalog extends Observable{
 		message= "Actual file path: " + catalogPath + "\n";
 		setChanged();
 		notifyObservers("clear");
+
 	}
 	
 	
@@ -175,6 +178,7 @@ public class Catalog extends Observable{
 			out.write(array, 0, tamRead);
 			tamRead = in.read(array);
 			
+			
 		}
 		
 		out.close();
@@ -188,6 +192,42 @@ public class Catalog extends Observable{
 		
 	
 	}
+	/**
+     *  reads the current catalog into the 
+     *
+	 * @param mode
+	 * @param strings
+	 */
+	public void readCatalog()/*throws java.lang.StringIndexOutOfBoundsException*/{
+	      message= "WDS loading...\n";
+		setChanged();
+		notifyObservers("clear");
+
+
+	 
+	      try {
+	         // Open file and create BufferedReader
+	         // for reading (using readLine()).
+	         
+	         RandomAccessFile f = new RandomAccessFile(catalogPath, "r");
+	         byte[] b = new byte[(int)f.length()];
+	         f.read(b);
+	     	setChanged();
+			notifyObservers(b);			         
+
+			      message= "WDS loaded \n";
+				  setChanged();
+				  notifyObservers("clear");	
+
+	      }
+	      catch(Exception e){
+	         e.printStackTrace();
+	      }	     
+	      
+	}
+		      
+
+	
 	/**
      *  search method in the file
      *
