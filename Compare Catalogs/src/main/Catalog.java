@@ -8,27 +8,38 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.HashMap;
+import java.util.Observable;
 
-public class Catalog {
+import javax.swing.JOptionPane;
+
+//import elements.ContenidoTS;
+//import elements.TablaSimbolo;
+
+public class Catalog{
 	/**
-	 * This class download the file. Txt WDS
-	 * Performs search on any text or by coordinates (right ascension, declination, radius)
+	 * This class download a catalog
+	ï¿½* Performs search on any text or by coordinates (right ascension, declination, radius)
 	 * 
 	 * @author Alicia Mireya Daza castillo
-	 * @author Jorge González López
-	 * @author Rosa Rodríguez Navarro
+	 * @author Jorge Gonzï¿½lez Lï¿½pez
+	 * @author Rosa Rodrï¿½guez Navarro
 	 * @since 1.1.1
 	 */
 	
 	/** attributes */
 	private String catalogPath;
 	private String message;
-	private String urlCatalog;
-
+	private String urlCatalogVizier;
+	private String urlCatalogWds;
+	
 	
 	/** construction */
 	public Catalog(){
 		catalogPath = "";
+		
 	}
 	
 	
@@ -53,42 +64,52 @@ public class Catalog {
 	}
 	
 	/**
+	 * OLD
 	 * Downloads WDS Catalog and saves it in /downloads/catalog.txt
 	 * 
 	 * @param filePath
 	 */
-	public void saveCatalogFile(String filePath, String fileNotesPath, String source, String coord, String rad) {
+	/*public void saveCatalog(String filePath, String fileNotesPath) {
 		try {
-			/*message = "Dowloading...";
-			setChanged();
-			notifyObservers("clear");*/
-			coord = coord.replaceAll(" ", "%20");
 			
-			urlCatalog = "http://vizier.u-strasbg.fr/viz-bin/asu-txt?-source="+source+"&-c="+coord+"&-c.rs="+rad;
-			//urlCatalog = "http://vizier.u-strasbg.fr/viz-bin/asu-txt?-source=II/246/out&-c=15%2000%2000%20+12%2012%2034&-c.rs=200";
 			// Url with WDS Catalog
-			URL url = new URL(urlCatalog);
+			URL url = new URL(
+					"http://ad.usno.navy.mil/wds/Webtextfiles/wdsweb_summ.txt");
 
 			download(url,filePath);
-
-		/*	download(url2,filePath+".notes");
-			System.out.println("\nDownload finished");
-			message = "\nDownload finished. \n" +
-					"Actual file path: " + filePath + "\n";
-			setChanged();
-			notifyObservers("append");
-
-			System.out.println("\nDownload finished");
-			message = "\nDownload finished. \n" +
-					"Actual file path: " + filePath + "\n";
-			setChanged();
-			notifyObservers("append");*/
 			
+			// Url with WDS Notes
+			URL url2 = new URL(
+					"http://ad.usno.navy.mil/wds/Webtextfiles/wdsnewnotes_main.txt");
+
+			download(url2,filePath+".notes");
+			
+			JOptionPane.showMessageDialog(null,"download","Info",JOptionPane.INFORMATION_MESSAGE);
+				 
+				} catch (MalformedURLException e) {
+				  System.out.println("url not valid!");
+				  
+				} catch (IOException e) {					
+				  e.printStackTrace();
+				}
+		
+	}*/
+	public void saveCatalogFile(String filePath, String fileNotesPath, String source, String coord, String rad) {
+		try {
+			
+			coord = coord.replaceAll(" ", "%20");
+			
+			urlCatalogVizier = "http://vizier.u-strasbg.fr/viz-bin/asu-txt?-source="+source+"&-c="+coord+"&-c.rs="+rad;
+			//urlCatalog = "http://vizier.u-strasbg.fr/viz-bin/asu-txt?-source=II/246/out&-c=15%2000%2000%20+12%2012%2034&-c.rs=200";
+			// Url with WDS Catalog
+			URL url = new URL(urlCatalogVizier);
+			download(url,filePath);			
 			catalogPath = filePath;
 				 
 		} catch (MalformedURLException e) {
 		  System.out.println("url not valid!");
-		  System.out.println(urlCatalog);
+		  System.out.println(urlCatalogVizier);
+		  	 
 		  
 		} catch (IOException e) {					
 		  e.printStackTrace();
@@ -96,43 +117,34 @@ public class Catalog {
 		
 	}
 	
-
+	
 	
 	private void download(URL url, String filePath) throws IOException {
-		File file = new File(filePath);
+		try {
+			File file = new File(filePath);
 
-		URLConnection conn = url.openConnection();
-		conn.connect();			
-	/*	message = "\nStarting download: \n" +
-				">> URL: " + url + "\n" +
-				">> Path: " + filePath + "\n" +
-				">> Size: " + conn.getContentLength() + " bytes\n";
-		setChanged();
-		notifyObservers("append");*/
+			URLConnection conn = url.openConnection();
+			conn.connect();		
+	
+			InputStream in = conn.getInputStream();
+			OutputStream out = new FileOutputStream(file);		
 		
-		InputStream in = conn.getInputStream();
-		OutputStream out = new FileOutputStream(file);
+			// Read file from web and write in local file
+			byte[] array = new byte[1000]; // temporal read buffer
+			int tamRead = in.read(array);
+			while (tamRead > 0) {
+				out.write(array, 0, tamRead);
+				tamRead = in.read(array);			
+			}
 		
-		
-		// Read file from web and write in local file
-		byte[] array = new byte[1000]; // temporal read buffer
-		int tamRead = in.read(array);
-		while (tamRead > 0) {
-			out.write(array, 0, tamRead);
-			tamRead = in.read(array);
-			
+			out.close();
+			in.close();		
+		}
+		catch (MalformedURLException e){
+			System.out.println("url not valid!");
 			
 		}
-		
-		out.close();
-		in.close();	
-		
-//		System.out.println("\nDownload finished");
-	/*	message = "\nDownload finished. \n" +
-				"Actual file path: " + filePath + "\n";
-		setChanged();
-		notifyObservers("append");*/
-		
-	
 	}
+	
+
 }
