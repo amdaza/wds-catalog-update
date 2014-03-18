@@ -8,6 +8,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JTextArea;
+
 import java.awt.Font;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -20,6 +21,8 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
+import java.util.Vector;
+
 import javax.swing.JScrollPane;
 import javax.swing.JCheckBox;
 import javax.swing.JTable;
@@ -33,7 +36,9 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JSeparator;
+
 import java.awt.Cursor;
+
 import javax.swing.ImageIcon;
 import javax.swing.SwingConstants;
 import javax.swing.JComboBox;
@@ -61,13 +66,14 @@ public class Interface extends JFrame {
 	private JMenuItem mntmAbout;
 	
 	private boolean open=false;
+	private boolean open2=false;
 	private boolean load;
 	
 	private static Catalog Info;
 	
 	private String path;
 	private DescriptionData primaryData;
-	private DescriptionData secondaryData;
+	private Vector<DescriptionData> arraySecondaryData;
 
 
 	/**
@@ -589,27 +595,21 @@ public class Interface extends JFrame {
 				String coordP = textCoorP.getText();
 				String radP = textRadiusP.getText();
 				
-				String sourceS = textFieldS.getText();
-				String coordS = textCoorP.getText();
-				String radS = textRadiusS.getText();
-				
 				JFileChooser selecFile=new JFileChooser(path);
 				@SuppressWarnings("unused")
 				int i=selecFile.showSaveDialog(Interface.this);
 				try{
 					String fileName=selecFile.getSelectedFile().getAbsolutePath();
-					String fileNotes = fileName+".notes";
 					if (alreadyexists(fileName)/* && alreadyexists(fileNotes)*/){
-					    Info.saveCatalogFile(fileName,fileNotes,sourceP,coordP,radP);
+					    Info.saveCatalogFile(fileName,sourceP,coordP,radP);
 					    Info.setCatalogPath(fileName);
 					    
 					    open=true;					   
 					    primaryData = new DescriptionData(fileName);
-					    System.out.println("hola");
 					    primaryData.parser();
-					    insertNames(primaryData.getDt());
+					    insertNames(primaryData.getDt(),0);
 					  
-					    Set s=mp.entrySet();
+					   /* Set s=mp.entrySet();
 						Iterator it=s.iterator();
 
 					        while(it.hasNext())
@@ -620,17 +620,122 @@ public class Interface extends JFrame {
 					            String key=(String)m.getKey();
 					           	table.setToolTipText(key);         
 
-					        }
+					        }*/
+					    saveSData(selecFile, primaryData.getDt());
+					    
 					    table.update(table.getGraphics());
+					    
+					    
+						
 					}
-				}
-				catch(Exception e2){};
+				}catch(Exception e2){};
 			}else if (o == btnStart){
 				//Start
 			}
 		}
 
-		private void insertNames(LinkedHashMap<String, DataStructure> dt) {
+		private void saveSData(JFileChooser selectedFile, LinkedHashMap<String, DataStructure> dt) {
+			
+		    //Catalog S
+			String sourceS = textFieldS.getText();
+			String radS = textRadiusS.getText();
+			String coordS = "";
+			Vector<StarRow> starsP = primaryData.getStars();
+			String coordSAnt = "x";
+			String coordSAnt2 = "y";
+			String coordSAnt3 = "z";
+			String coordSAnt4 = "x";
+			String coordSAnt5 = "y";
+			String coordSAnt6 = "z";
+			String coordSAnt7 = "x";
+			String coordSAnt8 = "y";
+			String coordSAnt9 = "z";
+			for (StarRow row : starsP){
+			    coordS = row.getStar().get("RAJ2000").getS();
+			    coordS += " ";
+			    coordS += row.getStar().get("DEJ2000").getS();
+			    /*********************/
+			    try{
+					String fileName=selectedFile.getSelectedFile().getAbsolutePath();
+					
+					//Code for quit file name from path
+					int pos = fileName.lastIndexOf(".");
+					if (pos > 0) {
+						fileName = fileName.substring(0, pos);
+					}
+					
+					String aux = "";
+					if(coordS.equals(coordSAnt)){
+						if (coordSAnt.equals(coordSAnt2)){
+							if (coordSAnt2.equals(coordSAnt3)){
+								if (coordSAnt3.equals(coordSAnt4)){
+									if (coordSAnt4.equals(coordSAnt5)){
+										if (coordSAnt5.equals(coordSAnt6)){
+											if (coordSAnt6.equals(coordSAnt7)){
+												if (coordSAnt7.equals(coordSAnt8)){
+													if (coordSAnt8.equals(coordSAnt9)){
+														aux = "IX";
+													}
+													else aux = "_VIII";
+												}
+												else aux = "_VII";
+											}
+											else aux = "_VI";
+										}
+										else aux = "_V";
+									}
+									else aux = "_IV";
+								}
+								else aux = "_III";
+							}
+							else aux = "_II";
+						}
+						else aux = "_I";
+					}
+					fileName += "Stars_of_S_around_"+ coordS + aux +".txt";
+					System.out.println(fileName);
+					if (alreadyexists(fileName)){
+					    Info.saveCatalogFile(fileName,sourceS,coordS,radS);
+					    Info.setCatalogPath(fileName);
+					    
+					    open2=true;					   
+					    DescriptionData secondaryData = new DescriptionData(fileName);
+					    secondaryData.parser();
+					    arraySecondaryData.add(secondaryData);
+					}
+				}catch(Exception e2){e2.printStackTrace();};
+				coordSAnt9 = coordSAnt8;
+				coordSAnt8 = coordSAnt7;
+				coordSAnt7 = coordSAnt6;
+				coordSAnt6 = coordSAnt5;
+				coordSAnt5= coordSAnt4;
+				coordSAnt4 = coordSAnt3;
+				coordSAnt3 = coordSAnt2;
+				coordSAnt2 = coordSAnt;
+				coordSAnt = coordS;
+
+			    /*********************/
+			}
+		    
+			//Get column names from some secondary data not empty
+			boolean found = false;
+			Iterator<DescriptionData> it = arraySecondaryData.iterator();
+			while (!found && it.hasNext()){
+				found = ! it.next().isEmpty();//FALTARIA BORRAR LOS QUE ESTÉN VACÍOS????
+			}
+		    if (found){
+		    	insertNames(arraySecondaryData.get(0).getDt(),1); 
+		    }else{
+		    	//No data for catalog S 
+		    	//Message??
+		    }
+		  
+		    table.update(table.getGraphics());
+			System.out.println(coordS);
+			
+		}
+
+		private void insertNames(LinkedHashMap<String, DataStructure> dt, int column) {
 			/*Iterator<String> it = dt.keySet().iterator();
 			int row = 0;
 			//.setToolTipText("aqui ponemos un ejemplo ;)");
@@ -644,7 +749,7 @@ public class Interface extends JFrame {
 			for (Map.Entry<String,DataStructure> entry : dt.entrySet()) {
 			    String key = entry.getKey();
 			    DataStructure value = entry.getValue();
-			    tableModel.setValueAt(key, row, 0);
+			    tableModel.setValueAt(key, row, column);
 			    //table.getComponentAt(row, 0).setToolTipText
 			    row++;
 			}
@@ -652,6 +757,7 @@ public class Interface extends JFrame {
 		}
 	}
 	
+
 		
 	private boolean alreadyexists(String file ) {
 		boolean value = true;
