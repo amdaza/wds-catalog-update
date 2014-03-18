@@ -94,7 +94,7 @@ public class Catalog{
 				}
 		
 	}*/
-	public void saveCatalogFile(String filePath, String fileNotesPath, String source, String coord, String rad) {
+	public void saveCatalogFile(String filePath, String source, String coord, String rad) {
 		try {
 			
 			coord = coord.replaceAll(" ", "%20");
