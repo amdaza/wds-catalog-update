@@ -1,0 +1,1 @@
+Application for update Washington Double Star Catalog
