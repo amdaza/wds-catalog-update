@@ -1,1 +1,1 @@
-Application for update Washington Double Star Catalog
+Application for downloading Washington Double Star Catalog (and other features) 
